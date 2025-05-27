@@ -4,6 +4,7 @@ import authRoutes from "./routes/auth.route";
 import { taskRoutes } from "./routes/task.route";
 import cors from "cors";
 import profileRoutes from "./routes/profile.route";
+import pomodoroRoutes from "./routes/pomodoro.route";
 
 const app = express();
 
@@ -19,5 +20,6 @@ app.use("/api", authRoutes);
 app.use("/api", taskRoutes);
 app.use("/api", userRoutes);
 app.use("/api", profileRoutes);
+app.use("/api", pomodoroRoutes);
 
 export default app;
