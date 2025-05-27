@@ -1,31 +1,35 @@
 import { TaskModel } from "../models/task.model";
 import { CreateTaskDTO } from "../dtos/task.dto";
+import { ITaskInterface } from "../interfaces/task.interface";
 
 export class CreateTaskService {
+  constructor(private taskRepository: ITaskInterface) {}
+
   async execute(data: CreateTaskDTO) {
-    const task = await TaskModel.create(data);
+    const task = await this.taskRepository.create(data);
+
     return task;
   }
 
   async findByUser(userId: string) {
-    const tasks = await TaskModel.find({
-      userId: userId,
-    }).sort({ createdAt: -1 });
+    const tasks = await this.taskRepository.findByUser(userId);
 
     return tasks;
   }
 
   async updateStatus(taskId: string, status: string) {
-    const task = await TaskModel.updateOne({ _id: taskId }, { status: status });
+    const task = await this.taskRepository.updateStatus(taskId, status);
 
     return task;
   }
 
   async delete(taskId: string) {
-    const task = await TaskModel.deleteOne({ _id: taskId });
-    if (task.deletedCount === 0) {
+    const task = await this.taskRepository.delete(taskId);
+    
+    if (!task) {
       throw new Error("Task not found");
     }
+
     return task;
   }
 
@@ -41,7 +45,7 @@ export class CreateTaskService {
     return tasksCount;
   }
 
-    async getTasksByProgressStatus(userId: string) {
+  async getTasksByProgressStatus(userId: string) {
     const tasksCount = await TaskModel.countDocuments({
       userId: userId,
       status: "todo",

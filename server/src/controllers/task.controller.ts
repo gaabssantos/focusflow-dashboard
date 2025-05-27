@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { CreateTaskService } from "../services/task.service";
 import { z } from "zod";
 import { taskSchema } from "../validation/task.validation";
+import { TaskRepository } from "../repositories/task.repository";
 
 export interface IRequest extends Request {
   user?: any;
@@ -9,16 +10,18 @@ export interface IRequest extends Request {
 
 export class CreateTaskController {
   async handle(req: IRequest, res: Response): Promise<Response> {
+    const data = taskSchema.parse(req.body);
+
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const taskRepository = new TaskRepository();
+    const taskService = new CreateTaskService(taskRepository);
+
     try {
-      const data = taskSchema.parse(req.body);
-
-      const userId = req.user?.id;
-      if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
-      }
-
-      const createTaskService = new CreateTaskService();
-      const task = await createTaskService.execute({
+      const task = await taskService.execute({
         ...data,
         description: data.description ?? undefined,
         status: "todo",
@@ -35,15 +38,17 @@ export class CreateTaskController {
   }
 
   async findByUserAndStatus(req: IRequest, res: Response): Promise<Response> {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const taskRepository = new TaskRepository();
+    const taskService = new CreateTaskService(taskRepository);
+
     try {
-      const userId = req.user?.id;
-
-      if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
-      }
-
-      const createTaskService = new CreateTaskService();
-      const tasks = await createTaskService.findByUser(userId);
+      const tasks = await taskService.findByUser(userId);
 
       return res.status(200).json(tasks);
     } catch (error) {
@@ -52,18 +57,18 @@ export class CreateTaskController {
   }
 
   async updateStatus(req: IRequest, res: Response): Promise<Response> {
+    const taskId = req.params.id;
+    const status = req.body.status;
+
+    if (!taskId || !status) {
+      return res.status(400).json({ error: "Task ID and status are required" });
+    }
+
+    const taskRepository = new TaskRepository();
+    const taskService = new CreateTaskService(taskRepository);
+
     try {
-      const taskId = req.params.id;
-      const status = req.body.status;
-
-      if (!taskId || !status) {
-        return res
-          .status(400)
-          .json({ error: "Task ID and status are required" });
-      }
-
-      const createTaskService = new CreateTaskService();
-      const task = await createTaskService.updateStatus(taskId, status);
+      const task = await taskService.updateStatus(taskId, status);
 
       return res.status(200).json(task);
     } catch (error) {
@@ -72,15 +77,17 @@ export class CreateTaskController {
   }
 
   async delete(req: IRequest, res: Response): Promise<Response> {
+    const taskId = req.params.id;
+
+    if (!taskId) {
+      return res.status(400).json({ error: "Task ID is required" });
+    }
+
+    const taskRepository = new TaskRepository();
+    const taskService = new CreateTaskService(taskRepository);
+
     try {
-      const taskId = req.params.id;
-
-      if (!taskId) {
-        return res.status(400).json({ error: "Task ID is required" });
-      }
-
-      const createTaskService = new CreateTaskService();
-      await createTaskService.delete(taskId);
+      await taskService.delete(taskId);
 
       return res.status(204).send();
     } catch (error) {
@@ -89,15 +96,17 @@ export class CreateTaskController {
   }
 
   async getTasksByDoneStatus(req: IRequest, res: Response): Promise<Response> {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const taskRepository = new TaskRepository();
+    const taskService = new CreateTaskService(taskRepository);
+
     try {
-      const userId = req.user?.id;
-
-      if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
-      }
-
-      const createTaskService = new CreateTaskService();
-      const tasksCount = await createTaskService.getTasksByDoneStatus(userId);
+      const tasksCount = await taskService.getTasksByDoneStatus(userId);
 
       return res.status(200).json({ count: tasksCount });
     } catch (error) {
@@ -109,15 +118,17 @@ export class CreateTaskController {
     req: IRequest,
     res: Response
   ): Promise<Response> {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const taskRepository = new TaskRepository();
+    const taskService = new CreateTaskService(taskRepository);
+
     try {
-      const userId = req.user?.id;
-
-      if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
-      }
-
-      const createTaskService = new CreateTaskService();
-      const tasksCount = await createTaskService.getTasksByProgressStatus(
+      const tasksCount = await taskService.getTasksByProgressStatus(
         userId
       );
 

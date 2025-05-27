@@ -2,7 +2,23 @@
 import { Schema, model } from "mongoose";
 import { Task } from "../entities/task";
 
-const TaskSchema = new Schema<Task>(
+export interface ITask extends Document {
+  title: string;
+  description?: string;
+  priority: "baixa" | "media" | "alta";
+  status: "todo" | "progress" | "done";
+  category:
+    | "trabalho"
+    | "estudos"
+    | "pessoal"
+    | "saude"
+    | "casa"
+    | "financeiro"
+    | "outros";
+  userId: string;
+}
+
+const TaskSchema = new Schema<ITask>(
   {
     title: { type: String, required: true },
     description: { type: String, required: false },
@@ -34,4 +50,4 @@ const TaskSchema = new Schema<Task>(
   { timestamps: true }
 );
 
-export const TaskModel = model<Task>("Task", TaskSchema);
+export const TaskModel = model<ITask>("Task", TaskSchema);
