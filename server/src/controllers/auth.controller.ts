@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
+import { AuthRepository } from "../repositories/auth.repository";
 
 export class AuthController {
   constructor() {
@@ -9,7 +10,8 @@ export class AuthController {
   async login(req: Request, res: Response): Promise<Response> {
     const { email, password } = req.body;
 
-    const authService = new AuthService();
+    const authRepository = new AuthRepository();
+    const authService = new AuthService(authRepository);
 
     try {
       const token = await authService.login({ email, password });

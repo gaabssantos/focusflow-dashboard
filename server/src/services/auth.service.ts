@@ -1,21 +1,14 @@
 import { UserModel } from "../models/user.model";
 import { ILoginDTO } from "../dtos/login.dto";
 import jwt from "jsonwebtoken";
+import { IAuthRepository } from "../interfaces/auth.interface";
 
 export class AuthService {
+  constructor(private authRepository: IAuthRepository) {}
+
   async login(data: ILoginDTO): Promise<string> {
-    const user = await UserModel.findOne({ email: data.email });
+    const user = await this.authRepository.login(data);
 
-    if (!user || !(await user.comparePassword(data.password))) {
-      throw new Error("E-mail ou senha inválidos.");
-    }
-
-    const token = jwt.sign(
-      { id: user._id, email: user.email },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "1d" }
-    );
-
-    return token;
+    return user;
   }
 }
