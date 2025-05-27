@@ -141,7 +141,11 @@ const TasksView = () => {
     setDraggedTask(null);
   };
 
-  const handleDeleteTask = async (taskId: string | number) => await deleteTasks(taskId);
+  const handleDeleteTask = async (taskId: string | number) => {
+    await deleteTasks(taskId);
+
+    setPendingTasks((await getPendingTasks()) ?? 0);
+  };
 
   // Função para filtrar tarefas por status - simplificada
   const getTasksByStatus = (status: TaskStatus) => {

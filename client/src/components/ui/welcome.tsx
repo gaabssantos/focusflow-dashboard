@@ -85,8 +85,10 @@ const Welcome = () => {
           isDarkMode ? "text-slate-300" : "text-slate-700"
         } mb-6`}
       >
-        Você tem {pendingTasks.count} tarefas pendentes hoje. Vamos
-        conquistá-las!
+        {pendingTasks.count > 0
+          ? `Você tem ${pendingTasks.count} tarefas pendentes hoje. Vamos
+        conquistá-las!`
+          : "Você não tem tarefas pendetes hoje. Aproveite o dia!"}
       </p>
       <button
         className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-semibold hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
