@@ -10,4 +10,10 @@ export class PomodoroService {
 
     return pomodoro;
   }
+
+    async getSessionById(userId: string): Promise<number> {
+    const pomodoro = await this.pomodoroRepository.getSessionById(userId);
+
+    return pomodoro;
+  }
 }

@@ -143,3 +143,17 @@ export const getDoneTasks = async () => {
     return;
   }
 };
+
+export const setPomodoroSessionTime = async (sessionTime: number) => {
+  try {
+    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro`, {
+      method: "POST",
+      body: JSON.stringify({ sessionTime }),
+    });
+
+    return response;
+  } catch (error) {
+    toast.error("Erro ao definir o tempo da sessão do Pomodoro. Tente novamente." + error);
+    return;
+  }
+}

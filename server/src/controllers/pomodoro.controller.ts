@@ -18,7 +18,22 @@ export class PomodoroController {
     const pomodoroService = new PomodoroService(pomodoroRepository);
 
     try {
-      const pomodoro = await pomodoroService.create({ sessionToday, userId: req.user.id });
+      const pomodoro = await pomodoroService.create({
+        sessionToday,
+        userId: req.user.id,
+      });
+      return res.json(pomodoro);
+    } catch (error) {
+      return res.status(401).json({ message: (error as Error).message });
+    }
+  }
+
+  async getSessionById(req: IRequest, res: Response): Promise<Response> {
+    const pomodoroRepository = new PomodoroRepository();
+    const pomodoroService = new PomodoroService(pomodoroRepository);
+
+    try {
+      const pomodoro = await pomodoroService.getSessionById(req.user.id);
       return res.json(pomodoro);
     } catch (error) {
       return res.status(401).json({ message: (error as Error).message });

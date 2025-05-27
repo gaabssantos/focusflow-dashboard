@@ -8,4 +8,8 @@ pomodoroRoutes.post("/pomodoro", (req, res) => {
   pomodoroController.create(req, res);
 });
 
+pomodoroRoutes.get("/pomodoro/session", (req, res) => {
+  pomodoroController.getSessionById(req, res);
+});
+
 export default pomodoroRoutes;
