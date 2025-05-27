@@ -1,6 +1,4 @@
-// src/modules/tasks/models/TaskModel.ts
 import { Schema, model } from "mongoose";
-import { Task } from "../entities/task";
 
 export interface ITask extends Document {
   title: string;

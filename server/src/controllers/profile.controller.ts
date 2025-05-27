@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ProfileService } from "../services/profile.service";
+import { ProfileRepository } from "../repositories/profile.repository";
 
 export class ProfileController {
   constructor() {
@@ -9,7 +10,8 @@ export class ProfileController {
   async getProfile(req: Request, res: Response): Promise<Response> {
     const { email } = req.body;
 
-    const profileService = new ProfileService();
+    const profileRepository = new ProfileRepository();
+    const profileService = new ProfileService(profileRepository);
 
     try {
       const user = await profileService.execute(email);
