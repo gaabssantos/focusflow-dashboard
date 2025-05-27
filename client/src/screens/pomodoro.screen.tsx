@@ -10,7 +10,6 @@ import {
   Volume2,
   VolumeX,
   ChevronLeft,
-  Music,
   Zap,
   Award,
 } from "lucide-react";
@@ -19,6 +18,7 @@ import React from "react";
 import { useTheme } from "@/context/theme.context";
 import { Task } from "@/@types/Task";
 import { getTasks } from "@/services/api.service";
+import { useNavigate } from "react-router-dom";
 const SkeletonBox = ({
   className = "",
   children = null,
@@ -181,33 +181,6 @@ const PomodoroSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => {
                 ))}
               </div>
             </div>
-
-            {/* Quick Actions Skeleton */}
-            <div
-              className={`${
-                isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-              } backdrop-blur-xl rounded-2xl p-6 border ${
-                isDarkMode ? "border-slate-700" : "border-slate-200"
-              }`}
-            >
-              <div className="flex items-center mb-4">
-                <SkeletonCircle size="w-6 h-6" />
-                <SkeletonText width="w-20" height="h-6" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className={`p-3 rounded-xl ${
-                      isDarkMode ? "bg-slate-700/30" : "bg-slate-100/50"
-                    } text-center`}
-                  >
-                    <SkeletonText width="w-8 h-8 mx-auto mb-2" />
-                    <SkeletonText width="w-12 h-3 mx-auto" />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </main>
@@ -227,6 +200,7 @@ const PomodoroView = () => {
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [selectedTask, setSelectedTask] = useState<string | undefined>();
   const [tasks, setTasks] = useState<{ title: string }[]>([]);
+  const navigation = useNavigate();
 
   // Settings
   const [focusTime] = useState(25);
@@ -234,6 +208,7 @@ const PomodoroView = () => {
   const [longBreakTime, setLongBreakTime] = useState(15);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Simulate loading
   useEffect(() => {
@@ -315,7 +290,7 @@ const PomodoroView = () => {
     }
 
     if (isSoundEnabled) {
-      console.log("🔔 Session completed!");
+      audioRef.current?.play();
     }
   };
 
@@ -386,6 +361,7 @@ const PomodoroView = () => {
               className={`p-2 rounded-xl ${
                 isDarkMode ? "hover:bg-slate-700" : "hover:bg-slate-100"
               } transition-all duration-300`}
+              onClick={() => navigation("/")}
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -685,44 +661,11 @@ const PomodoroView = () => {
                 ))}
               </div>
             </div>
-
-            {/* Quick Actions */}
-            <div
-              className={`${
-                isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-              } backdrop-blur-xl rounded-2xl p-6 border ${
-                isDarkMode ? "border-slate-700" : "border-slate-200"
-              }`}
-            >
-              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <Music className="w-6 h-6 mr-2 text-green-500" />
-                Ambiente
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { emoji: "🌧️", label: "Chuva" },
-                  { emoji: "🌊", label: "Oceano" },
-                  { emoji: "🔥", label: "Lareira" },
-                  { emoji: "🌲", label: "Floresta" },
-                ].map((item, index) => (
-                  <button
-                    key={index}
-                    className={`p-3 rounded-xl ${
-                      isDarkMode
-                        ? "bg-slate-700/50 hover:bg-slate-600/50"
-                        : "bg-slate-100 hover:bg-slate-200"
-                    } transition-all duration-300 text-center`}
-                  >
-                    <div className="text-2xl mb-1">{item.emoji}</div>
-                    <div className="text-xs">{item.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Settings Modal */}
+        <audio ref={audioRef} src="/audio/mixkit-happy-bells-notification-937.wav" />
+
         {showSettings && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div
