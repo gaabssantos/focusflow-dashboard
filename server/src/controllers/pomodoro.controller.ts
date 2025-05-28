@@ -1,42 +1,31 @@
 import { Request, Response } from "express";
-import { PomodoroRepository } from "../repositories/pomodoro.repository";
 import { PomodoroService } from "../services/pomodoro.service";
+import { PomodoroRepository } from "../repositories/pomodoro.repository";
+
+const service = new PomodoroService(new PomodoroRepository());
 
 export interface IRequest extends Request {
   user?: any;
 }
 
 export class PomodoroController {
-  constructor() {
-    this.create = this.create.bind(this);
-  }
-
-  async create(req: IRequest, res: Response): Promise<Response> {
-    const { sessionToday } = req.body;
-
-    const pomodoroRepository = new PomodoroRepository();
-    const pomodoroService = new PomodoroService(pomodoroRepository);
-
+  async incrementPomodoro(req: IRequest, res: Response) {
     try {
-      const pomodoro = await pomodoroService.create({
-        sessionToday,
-        userId: req.user.id,
-      });
-      return res.json(pomodoro);
-    } catch (error) {
-      return res.status(401).json({ message: (error as Error).message });
+      const userId = req.user.id; // auth middleware necessário
+      const result = await service.incrementSession(userId);
+      return res.json(result);
+    } catch (err) {
+      return res.status(500).json({ error: "Erro ao registrar pomodoro." });
     }
   }
 
-  async getSessionById(req: IRequest, res: Response): Promise<Response> {
-    const pomodoroRepository = new PomodoroRepository();
-    const pomodoroService = new PomodoroService(pomodoroRepository);
-
+  async getPomodoroToday (req: IRequest, res: Response) {
     try {
-      const pomodoro = await pomodoroService.getSessionById(req.user.id);
-      return res.json(pomodoro);
-    } catch (error) {
-      return res.status(401).json({ message: (error as Error).message });
+      const userId = req.user.id;
+      const result = await service.getTodaySessionCount(userId);
+      return res.json(result);
+    } catch (err) {
+      return res.status(500).json({ error: "Erro ao buscar sessões de hoje." });
     }
-  }
+  };
 }

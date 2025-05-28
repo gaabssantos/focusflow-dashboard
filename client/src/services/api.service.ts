@@ -144,16 +144,42 @@ export const getDoneTasks = async () => {
   }
 };
 
-export const setPomodoroSessionTime = async (sessionTime: number) => {
+export const getTodayPomodoros = async (): Promise<number> => {
   try {
-    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/stats`);
+
+    if (
+      typeof response === "object" &&
+      response !== null &&
+      "count" in response
+    ) {
+      return (response as { count?: number }).count || 0;
+    }
+
+    return 0;
+  } catch (error) {
+    toast.error("Erro ao buscar Pomodoros de hoje. Tente novamente. " + error);
+    return 0;
+  }
+};
+
+export const incrementPomodoro = async (): Promise<number> => {
+  try {
+    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/increment`, {
       method: "POST",
-      body: JSON.stringify({ sessionTime }),
     });
 
-    return response;
+    if (
+      typeof response === "object" &&
+      response !== null &&
+      "count" in response
+    ) {
+      return (response as { count?: number }).count || 0;
+    }
+
+    return 0;
   } catch (error) {
-    toast.error("Erro ao definir o tempo da sessão do Pomodoro. Tente novamente." + error);
-    return;
+    toast.error("Erro ao registrar Pomodoro. Tente novamente. " + error);
+    return 0;
   }
-}
+};

@@ -17,7 +17,11 @@ import {
 import React from "react";
 import { useTheme } from "@/context/theme.context";
 import { Task } from "@/@types/Task";
-import { getTasks } from "@/services/api.service";
+import {
+  getTasks,
+  getTodayPomodoros,
+  incrementPomodoro,
+} from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
 const SkeletonBox = ({
   className = "",
@@ -213,11 +217,10 @@ const PomodoroView = () => {
   // Simulate loading
   useEffect(() => {
     const loadData = async () => {
-      // Simulate API calls
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
+      setCompletedSessions(await getTodayPomodoros());
       setTasks((await getTasks()) as Task[]);
-
       setIsLoading(false);
     };
 
@@ -274,7 +277,7 @@ const PomodoroView = () => {
     };
   }, [isActive, isPaused, timeLeft]);
 
-  const handleSessionComplete = () => {
+  const handleSessionComplete = async () => {
     setIsActive(false);
     setIsPaused(false);
 
@@ -288,6 +291,9 @@ const PomodoroView = () => {
       setSessionType("focus");
       setTimeLeft(sessionConfigs.focus.duration);
     }
+
+    const newCount = await incrementPomodoro();
+    setCompletedSessions(newCount);
 
     if (isSoundEnabled) {
       audioRef.current?.play();
@@ -607,16 +613,6 @@ const PomodoroView = () => {
                     {(completedSessions * 25) % 60}m
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span
-                    className={`${
-                      isDarkMode ? "text-slate-400" : "text-slate-600"
-                    }`}
-                  >
-                    Sequência
-                  </span>
-                  <span className="text-xl font-semibold">7 dias</span>
-                </div>
               </div>
             </div>
 
@@ -664,7 +660,10 @@ const PomodoroView = () => {
           </div>
         </div>
 
-        <audio ref={audioRef} src="/audio/mixkit-happy-bells-notification-937.wav" />
+        <audio
+          ref={audioRef}
+          src="/audio/mixkit-happy-bells-notification-937.wav"
+        />
 
         {showSettings && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

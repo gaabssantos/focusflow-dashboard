@@ -1,33 +1,26 @@
+import moment from "moment";
 import { IPomodoroDTO } from "../dtos/pomodoro.dto";
 import { IPomodoroRepository } from "../interfaces/pomodoro.interface";
-import { IPomodoro, PomodoroModel } from "../models/pomodoro.model";
+import { PomodoroModel } from "../models/pomodoro.model";
 
 export class PomodoroRepository implements IPomodoroRepository {
-  async create(data: IPomodoroDTO): Promise<IPomodoro> {
-    let pomodoro = await PomodoroModel.findOne({ userId: data.userId });
-    if (!pomodoro) {
-      pomodoro = await PomodoroModel.create(data);
-    }
+  async incrementTodayCount(userId: string): Promise<IPomodoroDTO> {
+    const today = moment().format('YYYY-MM-DD');
 
-    return pomodoro;
+    const updated = await PomodoroModel.findOneAndUpdate(
+      { userId, date: today },
+      { $inc: { count: 1 } },
+      { upsert: true, new: true }
+    );
+
+    return { count: updated.count };
   }
 
-  async getSessionById(userId: string): Promise<number> {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+  async getTodayCount(userId: string): Promise<IPomodoroDTO> {
+    const today = moment().format('YYYY-MM-DD');
 
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
+    const record = await PomodoroModel.findOne({ userId, date: today });
 
-    const sessionsCount = await PomodoroModel.countDocuments({
-      userId: userId,
-      status: "done",
-      createdAt: {
-      $gte: startOfDay,
-      $lte: endOfDay,
-      },
-    });
-
-    return sessionsCount;
+    return { count: record?.count || 0 };
   }
 }

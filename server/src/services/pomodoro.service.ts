@@ -1,19 +1,14 @@
 import { IPomodoroDTO } from "../dtos/pomodoro.dto";
 import { IPomodoroRepository } from "../interfaces/pomodoro.interface";
-import { IPomodoro } from "../models/pomodoro.model";
 
 export class PomodoroService {
-  constructor(private pomodoroRepository: IPomodoroRepository) {}
+  constructor(private readonly repository: IPomodoroRepository) {}
 
-  async create(data: IPomodoroDTO): Promise<IPomodoro> {
-    const pomodoro = await this.pomodoroRepository.create(data);
-
-    return pomodoro;
+  async incrementSession(userId: string): Promise<IPomodoroDTO> {
+    return await this.repository.incrementTodayCount(userId);
   }
 
-    async getSessionById(userId: string): Promise<number> {
-    const pomodoro = await this.pomodoroRepository.getSessionById(userId);
-
-    return pomodoro;
+  async getTodaySessionCount(userId: string): Promise<IPomodoroDTO> {
+    return await this.repository.getTodayCount(userId);
   }
 }

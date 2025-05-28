@@ -1,20 +1,17 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Document } from 'mongoose';
 
-export interface IPomodoro extends Document {
-  sessionToday: number;
-  totalTime: number;
-  sequence: number;
+export interface Pomodoro extends Document {
   userId: string;
+  date: string;
+  count: number;
 }
 
-const PomodoroSchema = new Schema<IPomodoro>(
-  {
-    sessionToday: { type: Number, required: true },
-    totalTime: { type: Number, required: false, default: 0 },
-    sequence: { type: Number, required: false, default: 0 },
-    userId: { type: String, required: true },
-  },
-  { timestamps: true }
-);
+const PomodoroSchema = new Schema<Pomodoro>({
+  userId: { type: String, required: true },
+  date: { type: String, required: true },
+  count: { type: Number, default: 0 },
+});
 
-export const PomodoroModel = model<IPomodoro>("Pomodoro", PomodoroSchema);
+PomodoroSchema.index({ userId: 1, date: 1 }, { unique: true });
+
+export const PomodoroModel = model<Pomodoro>('Pomodoro', PomodoroSchema);
