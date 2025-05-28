@@ -547,7 +547,7 @@ const FinancialView = () => {
 
         {/* Add Transaction Modal */}
         {showAddTransaction && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-5">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start justify-center p-5 pt-24">
             <div
               className={`${
                 isDarkMode ? "bg-slate-800" : "bg-white"

@@ -43,6 +43,7 @@ const Stats = () => {
 
   const tasksIncrease = calculatePercentageIncrease(tasksDone, 15);
   const streakIncrease = calculatePercentageIncrease(streak, 15);
+  const pomodoroIncrease = calculatePercentageIncrease((pomodoro * 25) / 60, 15);
 
   useEffect(() => {
     async function fetchData() {
@@ -101,7 +102,7 @@ const Stats = () => {
         value={`${(pomodoro * 25) / 60}h`}
         subtitle="Hoje"
         gradient="from-purple-500 to-violet-500"
-        trend={-5}
+        trend={pomodoroIncrease}
       />
     </div>
   );
