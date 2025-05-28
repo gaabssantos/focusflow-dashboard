@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   DollarSign,
@@ -23,7 +23,7 @@ import {
   Filter,
 } from "lucide-react";
 import { useTheme } from "@/context/theme.context";
-import { addTransaction } from "@/services/api.service";
+import { addTransaction, getRecentTransactions } from "@/services/api.service";
 import { toast } from "react-toastify";
 
 const FinancialView = () => {
@@ -32,58 +32,10 @@ const FinancialView = () => {
     {
       id: 1,
       type: "income",
-      description: "Salário",
-      amount: 5500,
-      date: "2024-05-20",
-      category: "Salário",
-    },
-    {
-      id: 2,
-      type: "expense",
-      description: "Aluguel",
-      amount: 1200,
-      date: "2024-05-18",
-      category: "Moradia",
-    },
-    {
-      id: 3,
-      type: "expense",
-      description: "Supermercado",
-      amount: 350,
-      date: "2024-05-17",
-      category: "Alimentação",
-    },
-    {
-      id: 4,
-      type: "income",
-      description: "Freelance",
-      amount: 800,
-      date: "2024-05-15",
-      category: "Extra",
-    },
-    {
-      id: 5,
-      type: "expense",
-      description: "Netflix",
-      amount: 45,
-      date: "2024-05-14",
-      category: "Entretenimento",
-    },
-    {
-      id: 6,
-      type: "expense",
-      description: "Gasolina",
-      amount: 180,
-      date: "2024-05-12",
-      category: "Transporte",
-    },
-    {
-      id: 7,
-      type: "income",
-      description: "Dividendos",
-      amount: 120,
-      date: "2024-05-10",
-      category: "Investimentos",
+      description: "",
+      amount: 0,
+      date: "",
+      category: "",
     },
   ]);
 
@@ -191,6 +143,15 @@ const FinancialView = () => {
 
   const balanceProgress =
     balance > 0 ? Math.min((balance / (totalIncome || 1)) * 100, 100) : 0;
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const result = await getRecentTransactions("month");
+      setTransactions(result ?? []);
+    };
+
+    fetchTransactions();
+  }, [selectedPeriod]);
 
   return (
     <div>

@@ -21,4 +21,18 @@ export class TransactionController {
       return res.status(500).json({ error: "Erro ao criar transação." });
     }
   }
+
+  async getRecentTransactions(req: IRequest, res: Response) {
+    try {
+      const userId = req.user.id;
+      const period = (req.params.period as 'week' | 'month' | 'year') || 'month';
+
+      const result = await service.getRecentTransactions(userId, period);
+      return res.json(result);
+    } catch (err) {
+      return res
+        .status(500)
+        .json({ error: "Erro ao buscar transações recentes." });
+    }
+  }
 }

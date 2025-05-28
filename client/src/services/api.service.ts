@@ -47,14 +47,17 @@ export const createTask = async (normalizedData: {
   }
 };
 
-export const updateTask = async (targetStatus: TaskStatus, id: string | number) => {
+export const updateTask = async (
+  targetStatus: TaskStatus,
+  id: string | number
+) => {
   try {
-    const response = (await apiFetch(`${API_BASE_URL}/api/tasks/${id}`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/tasks/${id}`, {
       method: "PATCH",
       body: JSON.stringify({
         status: targetStatus,
       }),
-    }));
+    });
 
     return response;
   } catch (error) {
@@ -144,7 +147,9 @@ export const getDoneTasks = async () => {
   }
 };
 
-export const startPomodoroSession = async (): Promise<{ currentStreak: number }> => {
+export const startPomodoroSession = async (): Promise<{
+  currentStreak: number;
+}> => {
   try {
     const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/streak`, {
       method: "POST",
@@ -168,7 +173,10 @@ export const startPomodoroSession = async (): Promise<{ currentStreak: number }>
   }
 };
 
-export const incrementPomodoro = async (): Promise<{ count: number; currentStreak: number }> => {
+export const incrementPomodoro = async (): Promise<{
+  count: number;
+  currentStreak: number;
+}> => {
   try {
     const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/increment`, {
       method: "POST",
@@ -194,7 +202,10 @@ export const incrementPomodoro = async (): Promise<{ count: number; currentStrea
   }
 };
 
-export const getPomodoroStats = async (): Promise<{ count: number; currentStreak: number }> => {
+export const getPomodoroStats = async (): Promise<{
+  count: number;
+  currentStreak: number;
+}> => {
   try {
     const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/stats`, {
       method: "GET",
@@ -215,7 +226,9 @@ export const getPomodoroStats = async (): Promise<{ count: number; currentStreak
 
     return { count: 0, currentStreak: 0 };
   } catch (error) {
-    toast.error("Erro ao buscar estatísticas de Pomodoro. Tente novamente. " + error);
+    toast.error(
+      "Erro ao buscar estatísticas de Pomodoro. Tente novamente. " + error
+    );
     return { count: 0, currentStreak: 0 };
   }
 };
@@ -232,7 +245,7 @@ export const refreshStats = async (): Promise<PomodoroStats> => {
       count: stats.count || 0,
       currentStreak: stats.currentStreak || 0,
     };
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     toast.error("Erro ao atualizar estatísticas. Tente novamente.");
     return { count: 0, currentStreak: 0 };
@@ -258,14 +271,34 @@ interface TransactionResponse {
 
 export const addTransaction = async (data: CreateTransactionPayload) => {
   try {
-    const response = await apiFetch(`${API_BASE_URL}/api/transaction`, {
+    const response = (await apiFetch(`${API_BASE_URL}/api/transaction`, {
       method: "POST",
       body: JSON.stringify(data),
-    }) as TransactionResponse;
+    })) as TransactionResponse;
 
     return response;
   } catch (error) {
     toast.error("Erro ao adicionar transação. Tente novamente. " + error);
+    return;
+  }
+};
+
+export const getRecentTransactions = async (
+  period: 'week' | 'month' | 'year'
+): Promise<TransactionResponse[] | undefined> => {
+  try {
+    const response = (await apiFetch(
+      `${API_BASE_URL}/api/transaction/recents/${period}`,
+      {
+        method: "GET",
+      }
+    )) as TransactionResponse[];
+
+    return response;
+  } catch (error) {
+    toast.error(
+      "Erro ao buscar transações recentes. Tente novamente. " + error
+    );
     return;
   }
 };

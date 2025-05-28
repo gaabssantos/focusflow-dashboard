@@ -9,4 +9,8 @@ transactionRoutes.post("/transaction", ensureAuth, (req, res) => {
   controller.create(req, res);
 });
 
+transactionRoutes.get("/transaction/recents/:period", ensureAuth, async (req, res) => {
+  await controller.getRecentTransactions(req, res);
+});
+
 export default transactionRoutes;
