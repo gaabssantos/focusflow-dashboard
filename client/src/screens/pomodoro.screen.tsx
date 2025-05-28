@@ -201,7 +201,7 @@ const PomodoroView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(0.1 * 60);
+  const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [sessionType, setSessionType] = useState<SessionType>("focus");
   const [showSettings, setShowSettings] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);

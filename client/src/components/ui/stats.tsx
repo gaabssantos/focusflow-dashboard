@@ -1,10 +1,8 @@
 import { Award, Clock, DollarSign, Target } from "lucide-react";
 import StatsCard from "./stats-card";
 import { useEffect, useState } from "react";
-import {
-  getDoneTasks,
-  refreshStats,
-} from "@/services/api.service";
+import { getDoneTasks, refreshStats } from "@/services/api.service";
+import { usePomodoro } from "@/context/pomodoro.context";
 
 // Componente de Loading Skeleton para os cards
 const StatsCardSkeleton = () => (
@@ -38,6 +36,8 @@ const Stats = () => {
   const [tasksDone, setTasksDone] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState(0);
+
+  const { pomodoro } = usePomodoro();
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -98,7 +98,7 @@ const Stats = () => {
       <StatsCard
         icon={Clock}
         title="Tempo de Foco"
-        value={`${stats.focusTime}h`}
+        value={`${(pomodoro * 25) / 60}h`}
         subtitle="Hoje"
         gradient="from-purple-500 to-violet-500"
         trend={-5}
