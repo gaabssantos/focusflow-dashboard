@@ -21,8 +21,10 @@ import {
   getPomodoroStats,
   getTasks,
   incrementPomodoro,
+  startPomodoroSession,
 } from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
+import { usePomodoro } from "@/context/pomodoro.context";
 const SkeletonBox = ({
   className = "",
   children = null,
@@ -194,12 +196,13 @@ const PomodoroSkeleton = ({ isDarkMode }: { isDarkMode: boolean }) => {
 
 const PomodoroView = () => {
   const { isDarkMode } = useTheme();
+  const { pomodoro, setPomodoro } = usePomodoro();
+
   const [isLoading, setIsLoading] = useState(true);
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(25 * 60);
+  const [timeLeft, setTimeLeft] = useState(0.1 * 60);
   const [sessionType, setSessionType] = useState<SessionType>("focus");
-  const [completedSessions, setCompletedSessions] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [selectedTask, setSelectedTask] = useState<string | undefined>();
@@ -219,7 +222,7 @@ const PomodoroView = () => {
     const loadData = async () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      setCompletedSessions((await getPomodoroStats()).count);
+      setPomodoro((await getPomodoroStats()).count);
       setTasks((await getTasks()) as Task[]);
       setIsLoading(false);
     };
@@ -282,18 +285,17 @@ const PomodoroView = () => {
     setIsPaused(false);
 
     if (sessionType === "focus") {
-      setCompletedSessions((prev) => prev + 1);
+      const newCount = await incrementPomodoro();
+      setPomodoro(newCount.count);
+
       const nextSessionType =
-        (completedSessions + 1) % 4 === 0 ? "long-break" : "short-break";
+        newCount.count % 4 === 0 ? "long-break" : "short-break";
       setSessionType(nextSessionType);
       setTimeLeft(sessionConfigs[nextSessionType].duration);
     } else {
       setSessionType("focus");
       setTimeLeft(sessionConfigs.focus.duration);
     }
-
-    const newCount = await incrementPomodoro();
-    setCompletedSessions(newCount.count);
 
     if (isSoundEnabled) {
       audioRef.current?.play();
@@ -304,7 +306,7 @@ const PomodoroView = () => {
     setIsActive(true);
     setIsPaused(false);
 
-    await incrementPomodoro();
+    await startPomodoroSession();
   };
 
   const pauseTimer = () => {
@@ -599,7 +601,7 @@ const PomodoroView = () => {
                     Sessões Hoje
                   </span>
                   <span className="text-2xl font-bold text-purple-500">
-                    {completedSessions}
+                    {pomodoro}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -611,8 +613,7 @@ const PomodoroView = () => {
                     Tempo Total
                   </span>
                   <span className="text-xl font-semibold">
-                    {Math.floor((completedSessions * 25) / 60)}h{" "}
-                    {(completedSessions * 25) % 60}m
+                    {Math.floor((pomodoro * 25) / 60)}h {(pomodoro * 25) % 60}m
                   </span>
                 </div>
               </div>

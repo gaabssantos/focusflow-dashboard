@@ -144,6 +144,30 @@ export const getDoneTasks = async () => {
   }
 };
 
+export const startPomodoroSession = async (): Promise<{ currentStreak: number }> => {
+  try {
+    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/streak`, {
+      method: "POST",
+    });
+
+    if (
+      typeof response === "object" &&
+      response !== null &&
+      "currentStreak" in response
+    ) {
+      const { currentStreak = 0 } = response as {
+        currentStreak?: number;
+      };
+      return { currentStreak };
+    }
+
+    return { currentStreak: 0 };
+  } catch (error) {
+    toast.error("Erro ao iniciar sessão. Tente novamente. " + error);
+    return { currentStreak: 0 };
+  }
+};
+
 export const incrementPomodoro = async (): Promise<{ count: number; currentStreak: number }> => {
   try {
     const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/increment`, {

@@ -24,4 +24,12 @@ pomodoroRoutes.post(
   }
 );
 
+pomodoroRoutes.post(
+  "/pomodoro/streak",
+  ensureAuth,
+  async (req: IRequest, res: Response) => {
+    await pomodoroController.streakPomodoro(req, res);
+  }
+);
+
 export default pomodoroRoutes;

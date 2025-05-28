@@ -28,4 +28,14 @@ export class PomodoroController {
       return res.status(500).json({ error: "Erro ao buscar sessões de hoje." });
     }
   }
+
+  async streakPomodoro(req: IRequest, res: Response) {
+    try {
+      const userId = req.user.id;
+      const result = await service.streak(userId);
+      return res.json(result); // { count, currentStreak }
+    } catch (err) {
+      return res.status(500).json({ error: "Erro ao registrar pomodoro." });
+    }
+  }
 }

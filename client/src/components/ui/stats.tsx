@@ -42,6 +42,7 @@ const Stats = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const tasksIncrease = calculatePercentageIncrease(tasksDone, 15);
+  const streakIncrease = calculatePercentageIncrease(streak, 15);
 
   useEffect(() => {
     async function fetchData() {
@@ -84,7 +85,7 @@ const Stats = () => {
         value={`${streak} dias`}
         subtitle="Continue assim!"
         gradient="from-green-500 to-emerald-500"
-        trend={12}
+        trend={streakIncrease}
       />
       <StatsCard
         icon={DollarSign}
