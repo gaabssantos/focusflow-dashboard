@@ -144,26 +144,7 @@ export const getDoneTasks = async () => {
   }
 };
 
-export const getTodayPomodoros = async (): Promise<number> => {
-  try {
-    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/stats`);
-
-    if (
-      typeof response === "object" &&
-      response !== null &&
-      "count" in response
-    ) {
-      return (response as { count?: number }).count || 0;
-    }
-
-    return 0;
-  } catch (error) {
-    toast.error("Erro ao buscar Pomodoros de hoje. Tente novamente. " + error);
-    return 0;
-  }
-};
-
-export const incrementPomodoro = async (): Promise<number> => {
+export const incrementPomodoro = async (): Promise<{ count: number; currentStreak: number }> => {
   try {
     const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/increment`, {
       method: "POST",
@@ -172,14 +153,64 @@ export const incrementPomodoro = async (): Promise<number> => {
     if (
       typeof response === "object" &&
       response !== null &&
-      "count" in response
+      "count" in response &&
+      "currentStreak" in response
     ) {
-      return (response as { count?: number }).count || 0;
+      const { count = 0, currentStreak = 0 } = response as {
+        count?: number;
+        currentStreak?: number;
+      };
+      return { count, currentStreak };
     }
 
-    return 0;
+    return { count: 0, currentStreak: 0 };
   } catch (error) {
     toast.error("Erro ao registrar Pomodoro. Tente novamente. " + error);
-    return 0;
+    return { count: 0, currentStreak: 0 };
+  }
+};
+
+export const getPomodoroStats = async (): Promise<{ count: number; currentStreak: number }> => {
+  try {
+    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/stats`, {
+      method: "GET",
+    });
+
+    if (
+      typeof response === "object" &&
+      response !== null &&
+      "count" in response &&
+      "currentStreak" in response
+    ) {
+      const { count = 0, currentStreak = 0 } = response as {
+        count?: number;
+        currentStreak?: number;
+      };
+      return { count, currentStreak };
+    }
+
+    return { count: 0, currentStreak: 0 };
+  } catch (error) {
+    toast.error("Erro ao buscar estatísticas de Pomodoro. Tente novamente. " + error);
+    return { count: 0, currentStreak: 0 };
+  }
+};
+
+export interface PomodoroStats {
+  count: number;
+  currentStreak: number;
+}
+
+export const refreshStats = async (): Promise<PomodoroStats> => {
+  try {
+    const stats = await getPomodoroStats(); // já retorna count e streak
+    return {
+      count: stats.count || 0,
+      currentStreak: stats.currentStreak || 0,
+    };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    toast.error("Erro ao atualizar estatísticas. Tente novamente.");
+    return { count: 0, currentStreak: 0 };
   }
 };

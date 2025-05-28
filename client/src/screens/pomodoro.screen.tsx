@@ -18,8 +18,8 @@ import React from "react";
 import { useTheme } from "@/context/theme.context";
 import { Task } from "@/@types/Task";
 import {
+  getPomodoroStats,
   getTasks,
-  getTodayPomodoros,
   incrementPomodoro,
 } from "@/services/api.service";
 import { useNavigate } from "react-router-dom";
@@ -219,7 +219,7 @@ const PomodoroView = () => {
     const loadData = async () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      setCompletedSessions(await getTodayPomodoros());
+      setCompletedSessions((await getPomodoroStats()).count);
       setTasks((await getTasks()) as Task[]);
       setIsLoading(false);
     };
@@ -293,16 +293,18 @@ const PomodoroView = () => {
     }
 
     const newCount = await incrementPomodoro();
-    setCompletedSessions(newCount);
+    setCompletedSessions(newCount.count);
 
     if (isSoundEnabled) {
       audioRef.current?.play();
     }
   };
 
-  const startTimer = () => {
+  const startTimer = async () => {
     setIsActive(true);
     setIsPaused(false);
+
+    await incrementPomodoro();
   };
 
   const pauseTimer = () => {

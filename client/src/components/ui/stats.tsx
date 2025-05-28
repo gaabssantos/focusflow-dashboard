@@ -1,7 +1,10 @@
 import { Award, Clock, DollarSign, Target } from "lucide-react";
 import StatsCard from "./stats-card";
 import { useEffect, useState } from "react";
-import { getDoneTasks } from "@/services/api.service";
+import {
+  getDoneTasks,
+  refreshStats,
+} from "@/services/api.service";
 
 // Componente de Loading Skeleton para os cards
 const StatsCardSkeleton = () => (
@@ -28,13 +31,13 @@ const calculatePercentageIncrease = (
 const Stats = () => {
   const [stats] = useState({
     tasksCompleted: 12,
-    streak: 7,
     totalEarnings: 3240,
     focusTime: 4.2,
   });
 
   const [tasksDone, setTasksDone] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [streak, setStreak] = useState(0);
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -43,7 +46,9 @@ const Stats = () => {
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
-      setTasksDone(await getDoneTasks() ?? 0);
+      setTasksDone((await getDoneTasks()) ?? 0);
+      setStreak((await refreshStats()).currentStreak);
+
       setTimeout(() => {
         setIsLoading(false);
       }, 500);
@@ -76,7 +81,7 @@ const Stats = () => {
       <StatsCard
         icon={Award}
         title="Sequência Atual"
-        value={`${stats.streak} dias`}
+        value={`${streak} dias`}
         subtitle="Continue assim!"
         gradient="from-green-500 to-emerald-500"
         trend={12}

@@ -6,7 +6,6 @@ import {
 import { ensureAuth } from "../middlewares/ensureAuth";
 
 const pomodoroRoutes = Router();
-
 const pomodoroController = new PomodoroController();
 
 pomodoroRoutes.get(
@@ -16,6 +15,7 @@ pomodoroRoutes.get(
     await pomodoroController.getPomodoroToday(req, res);
   }
 );
+
 pomodoroRoutes.post(
   "/pomodoro/increment",
   ensureAuth,
