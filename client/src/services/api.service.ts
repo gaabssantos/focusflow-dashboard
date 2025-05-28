@@ -238,3 +238,34 @@ export const refreshStats = async (): Promise<PomodoroStats> => {
     return { count: 0, currentStreak: 0 };
   }
 };
+
+interface CreateTransactionPayload {
+  type: "income" | "expense";
+  description: string;
+  amount: number;
+  category: string;
+  date: string; // YYYY-MM-DD
+}
+
+interface TransactionResponse {
+  id: number;
+  type: "income" | "expense";
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+}
+
+export const addTransaction = async (data: CreateTransactionPayload) => {
+  try {
+    const response = await apiFetch(`${API_BASE_URL}/api/transaction`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    }) as TransactionResponse;
+
+    return response;
+  } catch (error) {
+    toast.error("Erro ao adicionar transação. Tente novamente. " + error);
+    return;
+  }
+};

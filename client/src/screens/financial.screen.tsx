@@ -23,6 +23,8 @@ import {
   Filter,
 } from "lucide-react";
 import { useTheme } from "@/context/theme.context";
+import { addTransaction } from "@/services/api.service";
+import { toast } from "react-toastify";
 
 const FinancialView = () => {
   const { isDarkMode } = useTheme();
@@ -145,26 +147,45 @@ const FinancialView = () => {
     return Object.entries(expensesByCategory).sort((a, b) => b[1] - a[1]);
   };
 
-  const handleAddTransaction = () => {
+  const handleAddTransaction = async () => {
     if (
       newTransaction.description &&
       newTransaction.amount &&
       newTransaction.category
     ) {
-      const transaction = {
-        id: Date.now(),
-        ...newTransaction,
-        amount: parseFloat(newTransaction.amount),
-      };
-      setTransactions([transaction, ...transactions]);
-      setNewTransaction({
-        type: "expense",
-        description: "",
-        amount: "",
-        category: "Alimentação",
-        date: new Date().toISOString().split("T")[0],
-      });
-      setShowAddTransaction(false);
+      try {
+        const transactionToSend = {
+          type: newTransaction.type as "income" | "expense",
+          description: newTransaction.description,
+          amount: parseFloat(newTransaction.amount),
+          category: newTransaction.category,
+          date: newTransaction.date,
+        };
+
+        const savedTransaction = await addTransaction(transactionToSend);
+
+        if (savedTransaction) {
+          setTransactions([savedTransaction, ...transactions]);
+
+          setNewTransaction({
+            type: "expense",
+            description: "",
+            amount: "",
+            category: "Alimentação",
+            date: new Date().toISOString().split("T")[0],
+          });
+
+          setShowAddTransaction(false);
+          toast.success("Transação adicionada com sucesso!");
+        } else {
+          toast.error("Erro ao adicionar transação.");
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        toast.error("Erro ao adicionar transação. Tente novamente.");
+      }
+    } else {
+      toast.warn("Preencha todos os campos obrigatórios.");
     }
   };
 
@@ -621,15 +642,23 @@ const FinancialView = () => {
                 />
 
                 <input
-                  type="number"
+                  type="text"
                   placeholder="Valor"
-                  value={newTransaction.amount}
-                  onChange={(e) =>
+                  value={new Intl.NumberFormat("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  }).format(Number(newTransaction.amount || 0))}
+                  onChange={(e) => {
+                    const raw = e.target.value
+                      .replace(/\D/g, "") // remove tudo que não for número
+                      .replace(/^0+/, ""); // remove zeros à esquerda
+                    const formatted = (Number(raw) / 100).toFixed(2); // transforma em decimal
+
                     setNewTransaction({
                       ...newTransaction,
-                      amount: e.target.value,
-                    })
-                  }
+                      amount: formatted,
+                    });
+                  }}
                   className={`w-full p-3 rounded-xl border ${
                     isDarkMode
                       ? "bg-slate-700 border-slate-600 text-white"
