@@ -38,7 +38,7 @@ const FinancialView = () => {
       category: "",
     },
   ]);
-
+  const [loading, setLoading] = useState(true); // Added loading state
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [hideValues] = useState(false);
@@ -146,8 +146,20 @@ const FinancialView = () => {
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      const result = await getRecentTransactions("month");
-      setTransactions(result ?? []);
+      setLoading(true); // Set loading to true before fetch
+      try {
+        const result = await getRecentTransactions(
+          selectedPeriod as "week" | "month" | "year"
+        );
+        setTransactions(result ?? []);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        toast.error("Erro ao carregar transações.");
+      } finally {
+        setTimeout(() => {
+          setLoading(false); // Set loading to false after fetch
+        }, 500);
+      }
     };
 
     fetchTransactions();
@@ -182,348 +194,471 @@ const FinancialView = () => {
             </div>
 
             {/* Main Balance Display */}
-            <div
-              className={`${
-                isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-              } backdrop-blur-xl rounded-3xl p-12 border ${
-                isDarkMode ? "border-slate-700" : "border-slate-200"
-              } text-center relative overflow-hidden`}
-            >
-              {/* Progress Ring */}
-              <div className="relative w-80 h-80 mx-auto mb-8">
-                <svg
-                  className="w-full h-full transform -rotate-90"
-                  viewBox="0 0 100 100"
-                >
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke={isDarkMode ? "#334155" : "#e2e8f0"}
-                    strokeWidth="2"
-                    fill="none"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    stroke="url(#balanceGradient)"
-                    strokeWidth="3"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 45}`}
-                    strokeDashoffset={`${
-                      2 * Math.PI * 45 * (1 - balanceProgress / 100)
-                    }`}
-                    className="transition-all duration-300"
-                  />
-                  <defs>
-                    <linearGradient
-                      id="balanceGradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="100%"
-                    >
-                      <stop offset="0%" stopColor="#10B981" />
-                      <stop offset="100%" stopColor="#059669" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-
-                {/* Balance Display */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-6xl font-bold mb-2 font-mono">
-                    {formatCurrency(balance)}
-                  </div>
-                  <div
-                    className={`text-lg font-medium ${
-                      isDarkMode ? "text-slate-400" : "text-slate-600"
-                    }`}
-                  >
-                    Saldo Atual
-                  </div>
-                  <div
-                    className={`text-sm mt-2 px-4 py-2 rounded-full ${
-                      isDarkMode ? "bg-slate-700" : "bg-slate-100"
-                    }`}
-                  >
-                    💰{" "}
-                    {selectedPeriod === "month"
-                      ? "Este mês"
-                      : selectedPeriod === "week"
-                      ? "Esta semana"
-                      : "Este ano"}
-                  </div>
+            {loading ? (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-3xl p-12 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                } text-center relative overflow-hidden animate-pulse`}
+              >
+                <div className="w-80 h-80 mx-auto mb-8">
+                  <div className="w-full h-full bg-gray-300 rounded-full dark:bg-gray-600"></div>
+                </div>
+                <div className="space-y-4">
+                  <div className="h-12 bg-gray-300 rounded-xl dark:bg-gray-600 w-3/4 mx-auto"></div>
+                  <div className="h-6 bg-gray-300 rounded-xl dark:bg-gray-600 w-1/2 mx-auto"></div>
+                  <div className="h-6 bg-gray-300 rounded-full dark:bg-gray-600 w-1/4 mx-auto"></div>
+                </div>
+                <div className="flex justify-center space-x-4 mt-8">
+                  <div className="h-12 bg-gray-300 rounded-xl dark:bg-gray-600 w-1/3"></div>
+                  <div className="h-12 bg-gray-300 rounded-xl dark:bg-gray-600 w-12"></div>
+                  <div className="h-12 bg-gray-300 rounded-xl dark:bg-gray-600 w-12"></div>
                 </div>
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-center space-x-4">
-                <button
-                  onClick={() => setShowAddTransaction(true)}
-                  className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-300 shadow-lg flex items-center space-x-3"
-                >
-                  <PlusCircle className="w-6 h-6" />
-                  <span>Nova Transação</span>
-                </button>
-
-                <button
-                  className={`${
-                    isDarkMode
-                      ? "bg-slate-700 hover:bg-slate-600"
-                      : "bg-slate-200 hover:bg-slate-300"
-                  } px-6 py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-300`}
-                >
-                  <PieChart className="w-6 h-6" />
-                </button>
-
-                <button
-                  className={`${
-                    isDarkMode
-                      ? "bg-slate-700 hover:bg-slate-600"
-                      : "bg-slate-200 hover:bg-slate-300"
-                  } px-6 py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-300`}
-                >
-                  <Filter className="w-6 h-6" />
-                </button>
+            ) : (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-3xl p-12 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                } text-center relative overflow-hidden`}
+              >
+                <div className="relative w-80 h-80 mx-auto mb-8">
+                  <svg
+                    className="w-full h-full transform -rotate-90"
+                    viewBox="0 0 100 100"
+                  >
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="45"
+                      stroke={isDarkMode ? "#334155" : "#e2e8f0"}
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="45"
+                      stroke="url(#balanceGradient)"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 45}`}
+                      strokeDashoffset={`${
+                        2 * Math.PI * 45 * (1 - balanceProgress / 100)
+                      }`}
+                      className="transition-all duration-300"
+                    />
+                    <defs>
+                      <linearGradient
+                        id="balanceGradient"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="100%"
+                      >
+                        <stop offset="0%" stopColor="#10B981" />
+                        <stop offset="100%" stopColor="#059669" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <div className="text-6xl font-bold mb-2 font-mono">
+                      {formatCurrency(balance)}
+                    </div>
+                    <div
+                      className={`text-lg font-medium ${
+                        isDarkMode ? "text-slate-400" : "text-slate-600"
+                      }`}
+                    >
+                      Saldo Atual
+                    </div>
+                    <div
+                      className={`text-sm mt-2 px-4 py-2 rounded-full ${
+                        isDarkMode ? "bg-slate-700" : "bg-slate-100"
+                      }`}
+                    >
+                      💰{" "}
+                      {selectedPeriod === "month"
+                        ? "Este mês"
+                        : selectedPeriod === "week"
+                        ? "Esta semana"
+                        : "Este ano"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={() => setShowAddTransaction(true)}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-300 shadow-lg flex items-center space-x-3"
+                  >
+                    <PlusCircle className="w-6 h-6" />
+                    <span>Nova Transação</span>
+                  </button>
+                  <button
+                    className={`${
+                      isDarkMode
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-slate-200 hover:bg-slate-300"
+                    } px-6 py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-300`}
+                  >
+                    <PieChart className="w-6 h-6" />
+                  </button>
+                  <button
+                    className={`${
+                      isDarkMode
+                        ? "bg-slate-700 hover:bg-slate-600"
+                        : "bg-slate-200 hover:bg-slate-300"
+                    } px-6 py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-300`}
+                  >
+                    <Filter className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Income vs Expenses Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div
-                className={`${
-                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-                } backdrop-blur-xl rounded-2xl p-6 border ${
-                  isDarkMode ? "border-slate-700" : "border-slate-200"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p
-                      className={`${
-                        isDarkMode ? "text-slate-400" : "text-slate-600"
-                      }`}
-                    >
-                      Receitas
-                    </p>
-                    <p className="text-3xl font-bold text-green-500">
-                      {formatCurrency(totalIncome)}
-                    </p>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...Array(2)].map((_, index) => (
+                  <div
+                    key={index}
+                    className={`${
+                      isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                    } backdrop-blur-xl rounded-2xl p-6 border ${
+                      isDarkMode ? "border-slate-700" : "border-slate-200"
+                    } animate-pulse`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <div className="h-6 bg-gray-300 rounded dark:bg-gray-600 w-24"></div>
+                        <div className="h-8 bg-gray-300 rounded dark:bg-gray-600 w-32"></div>
+                      </div>
+                      <div className="h-12 w-12 bg-gray-300 rounded-xl dark:bg-gray-600"></div>
+                    </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-green-100">
-                    <TrendingUp className="w-8 h-8 text-green-600" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div
+                  className={`${
+                    isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                  } backdrop-blur-xl rounded-2xl p-6 border ${
+                    isDarkMode ? "border-slate-700" : "border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p
+                        className={`${
+                          isDarkMode ? "text-slate-400" : "text-slate-600"
+                        }`}
+                      >
+                        Receitas
+                      </p>
+                      <p className="text-3xl font-bold text-green-500">
+                        {formatCurrency(totalIncome)}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-green-100">
+                      <TrendingUp className="w-8 h-8 text-green-600" />
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className={`${
+                    isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                  } backdrop-blur-xl rounded-2xl p-6 border ${
+                    isDarkMode ? "border-slate-700" : "border-slate-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p
+                        className={`${
+                          isDarkMode ? "text-slate-400" : "text-slate-600"
+                        }`}
+                      >
+                        Despesas
+                      </p>
+                      <p className="text-3xl font-bold text-red-500">
+                        {formatCurrency(totalExpenses)}
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-red-100">
+                      <TrendingDown className="w-8 h-8 text-red-600" />
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div
-                className={`${
-                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-                } backdrop-blur-xl rounded-2xl p-6 border ${
-                  isDarkMode ? "border-slate-700" : "border-slate-200"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p
-                      className={`${
-                        isDarkMode ? "text-slate-400" : "text-slate-600"
-                      }`}
-                    >
-                      Despesas
-                    </p>
-                    <p className="text-3xl font-bold text-red-500">
-                      {formatCurrency(totalExpenses)}
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-red-100">
-                    <TrendingDown className="w-8 h-8 text-red-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Stats */}
-            <div
-              className={`${
-                isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-              } backdrop-blur-xl rounded-2xl p-6 border ${
-                isDarkMode ? "border-slate-700" : "border-slate-200"
-              }`}
-            >
-              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <Award className="w-6 h-6 mr-2 text-purple-500" />
-                Resumo
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span
-                    className={`${
-                      isDarkMode ? "text-slate-400" : "text-slate-600"
-                    }`}
-                  >
-                    Transações
-                  </span>
-                  <span className="text-2xl font-bold text-purple-500">
-                    {transactions.length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span
-                    className={`${
-                      isDarkMode ? "text-slate-400" : "text-slate-600"
-                    }`}
-                  >
-                    Maior Gasto
-                  </span>
-                  <span className="text-xl font-semibold">
-                    {formatCurrency(
-                      Math.max(
-                        ...transactions
-                          .filter((t) => t.type === "expense")
-                          .map((t) => t.amount)
-                      )
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span
-                    className={`${
-                      isDarkMode ? "text-slate-400" : "text-slate-600"
-                    }`}
-                  >
-                    Meta Mensal
-                  </span>
-                  <span className="text-xl font-semibold">85%</span>
+            {loading ? (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-2xl p-6 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                } animate-pulse`}
+              >
+                <div className="h-6 bg-gray-300 rounded dark:bg-gray-600 w-1/2 mb-4"></div>
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
+                      <div className="h-5 bg-gray-300 rounded dark:bg-gray-600 w-1/3"></div>
+                      <div className="h-5 bg-gray-300 rounded dark:bg-gray-600 w-1/4"></div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            ) : (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-2xl p-6 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                }`}
+              >
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <Award className="w-6 h-6 mr-2 text-purple-500" />
+                  Resumo
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`${
+                        isDarkMode ? "text-slate-400" : "text-slate-600"
+                      }`}
+                    >
+                      Transações
+                    </span>
+                    <span className="text-2xl font-bold text-purple-500">
+                      {transactions.length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`${
+                        isDarkMode ? "text-slate-400" : "text-slate-600"
+                      }`}
+                    >
+                      Maior Gasto
+                    </span>
+                    <span className="text-xl font-semibold">
+                      {formatCurrency(
+                        Math.max(
+                          ...transactions
+                            .filter((t) => t.type === "expense")
+                            .map((t) => t.amount)
+                        )
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`${
+                        isDarkMode ? "text-slate-400" : "text-slate-600"
+                      }`}
+                    >
+                      Meta Mensal
+                    </span>
+                    <span className="text-xl font-semibold">85%</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Categories */}
-            <div
-              className={`${
-                isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-              } backdrop-blur-xl rounded-2xl p-6 border ${
-                isDarkMode ? "border-slate-700" : "border-slate-200"
-              }`}
-            >
-              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <Target className="w-6 h-6 mr-2 text-blue-500" />
-                Gastos por Categoria
-              </h3>
-              <div className="space-y-3">
-                {getExpensesByCategory()
-                  .slice(0, 5)
-                  .map(([category, amount], index) => {
-                    const Icon = categoryIcons[category] || MoreHorizontal;
-                    const percentage = (amount / totalExpenses) * 100;
-                    const colors = [
-                      "bg-blue-500",
-                      "bg-purple-500",
-                      "bg-green-500",
-                      "bg-yellow-500",
-                      "bg-red-500",
-                    ];
+            {loading ? (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-2xl p-6 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                } animate-pulse`}
+              >
+                <div className="h-6 bg-gray-300 rounded dark:bg-gray-600 w-1/2 mb-4"></div>
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="h-4 w-4 bg-gray-300 rounded dark:bg-gray-600"></div>
+                          <div className="h-4 bg-gray-300 rounded dark:bg-gray-600 w-24"></div>
+                        </div>
+                        <div className="h-4 bg-gray-300 rounded dark:bg-gray-600 w-16"></div>
+                      </div>
+                      <div className="h-2 bg-gray-300 rounded-full dark:bg-gray-600 w-full"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-2xl p-6 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                }`}
+              >
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <Target className="w-6 h-6 mr-2 text-blue-500" />
+                  Gastos por Categoria
+                </h3>
+                <div className="space-y-3">
+                  {getExpensesByCategory()
+                    .slice(0, 5)
+                    .map(([category, amount], index) => {
+                      const Icon = categoryIcons[category] || MoreHorizontal;
+                      const percentage = (amount / totalExpenses) * 100;
+                      const colors = [
+                        "bg-blue-500",
+                        "bg-purple-500",
+                        "bg-green-500",
+                        "bg-yellow-500",
+                        "bg-red-500",
+                      ];
 
-                    return (
-                      <div key={category} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Icon className="w-4 h-4" />
-                            <span className="text-sm font-medium">
-                              {category}
+                      return (
+                        <div key={category} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Icon className="w-4 h-4" />
+                              <span className="text-sm font-medium">
+                                {category}
+                              </span>
+                            </div>
+                            <span className="text-sm text-slate-600">
+                              {formatCurrency(amount)}
                             </span>
                           </div>
-                          <span className="text-sm text-slate-600">
-                            {formatCurrency(amount)}
-                          </span>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${
+                                colors[index % colors.length]
+                              } transition-all duration-500`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              colors[index % colors.length]
-                            } transition-all duration-500`}
-                            style={{ width: `${percentage}%` }}
-                          />
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Transactions */}
+            {loading ? (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-2xl p-6 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                } animate-pulse`}
+              >
+                <div className="h-6 bg-gray-300 rounded dark:bg-gray-600 w-1/2 mb-4"></div>
+                <div className="space-y-3">
+                  {[...Array(4)].map((_, index) => (
+                    <div
+                      key={index}
+                      className={`p-3 rounded-xl ${
+                        isDarkMode ? "bg-slate-700/50" : "bg-slate-100"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-8 w-8 bg-gray-300 rounded-lg dark:bg-gray-600"></div>
+                          <div>
+                            <div className="h-4 bg-gray-300 rounded dark:bg-gray-600 w-24"></div>
+                            <div className="h-3 bg-gray-300 rounded dark:bg-gray-600 w-16 mt-2"></div>
+                          </div>
+                        </div>
+                        <div className="h-4 bg-gray-300 rounded dark:bg-gray-600 w-20"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`${
+                  isDarkMode ? "bg-slate-800/50" : "bg-white/80"
+                } backdrop-blur-xl rounded-2xl p-6 border ${
+                  isDarkMode ? "border-slate-700" : "border-slate-200"
+                }`}
+              >
+                <h3 className="text-xl font-semibold mb-4 flex items-center">
+                  <CreditCard className="w-6 h-6 mr-2 text-green-500" />
+                  Transações Recentes
+                </h3>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {transactions.slice(0, 4).map((transaction) => {
+                    return (
+                      <div
+                        key={transaction.id}
+                        className={`p-3 rounded-xl ${
+                          isDarkMode
+                            ? "bg-slate-700/50 hover:bg-slate-600/50"
+                            : "bg-slate-100 hover:bg-slate-200"
+                        } transition-all duration-300`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div
+                              className={`p-2 rounded-lg ${
+                                transaction.type === "income"
+                                  ? "bg-green-100"
+                                  : "bg-red-100"
+                              }`}
+                            >
+                              {transaction.type === "income" ? (
+                                <ArrowUpRight className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <ArrowDownRight className="w-4 h-4 text-red-600" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">
+                                {transaction.description}
+                              </p>
+                              <p
+                                className={`text-xs ${
+                                  isDarkMode
+                                    ? "text-slate-400"
+                                    : "text-slate-600"
+                                }`}
+                              >
+                                {transaction.category}
+                              </p>
+                            </div>
+                          </div>
+                          <span
+                            className={`text-sm font-semibold ${
+                              transaction.type === "income"
+                                ? "text-green-500"
+                                : "text-red-500"
+                            }`}
+                          >
+                            {transaction.type === "income" ? "+" : "-"}
+                            {formatCurrency(transaction.amount)}
+                          </span>
                         </div>
                       </div>
                     );
                   })}
+                </div>
               </div>
-            </div>
-
-            {/* Recent Transactions */}
-            <div
-              className={`${
-                isDarkMode ? "bg-slate-800/50" : "bg-white/80"
-              } backdrop-blur-xl rounded-2xl p-6 border ${
-                isDarkMode ? "border-slate-700" : "border-slate-200"
-              }`}
-            >
-              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <CreditCard className="w-6 h-6 mr-2 text-green-500" />
-                Transações Recentes
-              </h3>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {transactions.slice(0, 4).map((transaction) => {
-                  return (
-                    <div
-                      key={transaction.id}
-                      className={`p-3 rounded-xl ${
-                        isDarkMode
-                          ? "bg-slate-700/50 hover:bg-slate-600/50"
-                          : "bg-slate-100 hover:bg-slate-200"
-                      } transition-all duration-300`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className={`p-2 rounded-lg ${
-                              transaction.type === "income"
-                                ? "bg-green-100"
-                                : "bg-red-100"
-                            }`}
-                          >
-                            {transaction.type === "income" ? (
-                              <ArrowUpRight className="w-4 h-4 text-green-600" />
-                            ) : (
-                              <ArrowDownRight className="w-4 h-4 text-red-600" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {transaction.description}
-                            </p>
-                            <p
-                              className={`text-xs ${
-                                isDarkMode ? "text-slate-400" : "text-slate-600"
-                              }`}
-                            >
-                              {transaction.category}
-                            </p>
-                          </div>
-                        </div>
-                        <span
-                          className={`text-sm font-semibold ${
-                            transaction.type === "income"
-                              ? "text-green-500"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {transaction.type === "income" ? "+" : "-"}
-                          {formatCurrency(transaction.amount)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
