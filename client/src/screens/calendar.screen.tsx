@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useTheme } from "@/context/theme.context";
 import { useState, useEffect } from "react";
-
 import {
   Plus,
   ChevronRight,
@@ -9,10 +9,71 @@ import {
   Calendar,
   Clock,
   FileText,
-  Flag,
   Repeat,
   Trash2,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import { createRoutine, getAllRoutines } from "@/services/api.service";
+
+// Skeleton component for calendar grid
+const CalendarSkeleton = () => {
+  return (
+    <div className="grid grid-cols-7 gap-1">
+      {Array(7)
+        .fill(0)
+        .map((_, index) => (
+          <div
+            key={index}
+            className="p-3 text-center text-sm font-medium text-transparent bg-gray-200 dark:bg-slate-700 animate-pulse"
+          >
+            Placeholder
+          </div>
+        ))}
+      {Array(35)
+        .fill(0)
+        .map((_, index) => (
+          <div
+            key={index}
+            className="min-h-[100px] p-2 border rounded-lg bg-gray-200 dark:bg-slate-700 animate-pulse"
+          >
+            <div className="w-8 h-4 mb-1 bg-gray-300 dark:bg-slate-600 rounded animate-pulse"></div>
+            <div className="space-y-1">
+              <div className="h-6 bg-gray-300 dark:bg-slate-600 rounded animate-pulse"></div>
+              <div className="h-6 bg-gray-300 dark:bg-slate-600 rounded animate-pulse"></div>
+            </div>
+          </div>
+        ))}
+    </div>
+  );
+};
+
+// Skeleton component for weekly routines
+const WeeklyRoutinesSkeleton = () => {
+  return (
+    <div className="space-y-4">
+      {Array(7)
+        .fill(0)
+        .map((_, index) => (
+          <div key={index}>
+            <div className="h-5 w-32 bg-gray-200 dark:bg-slate-700 rounded animate-pulse mb-2"></div>
+            <div className="space-y-2 ml-3">
+              {Array(2)
+                .fill(0)
+                .map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2 rounded-lg bg-gray-200 dark:bg-slate-700 animate-pulse"
+                  >
+                    <div className="h-4 w-3/4 bg-gray-300 dark:bg-slate-600 rounded animate-pulse mb-1"></div>
+                    <div className="h-3 w-1/2 bg-gray-300 dark:bg-slate-600 rounded animate-pulse"></div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        ))}
+    </div>
+  );
+};
 
 const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -21,7 +82,7 @@ const CalendarView = () => {
   const [isDayRoutinesModalOpen, setIsDayRoutinesModalOpen] = useState(false);
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(
     null
-  ); // New state for selected routine
+  );
   const [newRoutine, setNewRoutine] = useState({
     title: "",
     description: "",
@@ -30,297 +91,35 @@ const CalendarView = () => {
     priority: "media",
     category: "estudo",
   });
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true); // New loading state
+  const { isDarkMode } = useTheme();
 
   interface Task {
     _id: string;
     title: string;
     description: string;
-    dayOfWeek: number;
+    weekDay: number;
     time: string;
-    priority: string;
     category: string;
-    completed: boolean;
-    isRoutine: boolean;
-    createdAt: string;
   }
 
-  const [tasks, setTasks] = useState<Task[]>([]); // Changed addTask to setTasks for full control
-  const { isDarkMode } = useTheme();
-
-  // Mock routines data
-  const mockRoutines = [
-    {
-      _id: "mock-1",
-      title: "Planejamento da Semana",
-      description: "Organizar tarefas e metas para a semana",
-      dayOfWeek: 0,
-      time: "09:00",
-      priority: "alta",
-      category: "trabalho",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-2",
-      title: "Leitura Dominical",
-      description: "Ler um capítulo de livro de desenvolvimento pessoal",
-      dayOfWeek: 0,
-      time: "14:00",
-      priority: "media",
-      category: "estudo",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-3",
-      title: "Limpeza Geral",
-      description: "Organizar e limpar a casa",
-      dayOfWeek: 0,
-      time: "16:00",
-      priority: "media",
-      category: "casa",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-4",
-      title: "Academia - Peito e Tríceps",
-      description: "Treino focado em peito e tríceps",
-      dayOfWeek: 1,
-      time: "06:00",
-      priority: "alta",
-      category: "exercicio",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-5",
-      title: "Estudar JavaScript",
-      description: "2 horas de estudo focado em JavaScript avançado",
-      dayOfWeek: 1,
-      time: "19:00",
-      priority: "alta",
-      category: "estudo",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-6",
-      title: "Reunião de Equipe",
-      description: "Reunião semanal com a equipe de desenvolvimento",
-      dayOfWeek: 1,
-      time: "10:00",
-      priority: "alta",
-      category: "trabalho",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-7",
-      title: "Caminhada Matinal",
-      description: "30 minutos de caminhada no parque",
-      dayOfWeek: 2,
-      time: "06:30",
-      priority: "media",
-      category: "exercicio",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-8",
-      title: "Curso Online - React",
-      description: "Aulas do curso de React Native",
-      dayOfWeek: 2,
-      time: "20:00",
-      priority: "alta",
-      category: "estudo",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-9",
-      title: "Consulta Médica",
-      description: "Check-up mensal com clínico geral",
-      dayOfWeek: 2,
-      time: "15:00",
-      priority: "alta",
-      category: "saude",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-10",
-      title: "Academia - Costas e Bíceps",
-      description: "Treino focado em costas e bíceps",
-      dayOfWeek: 3,
-      time: "06:00",
-      priority: "alta",
-      category: "exercicio",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-11",
-      title: "Projeto Pessoal",
-      description: "Trabalhar no app de produtividade",
-      dayOfWeek: 3,
-      time: "19:30",
-      priority: "media",
-      category: "trabalho",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-12",
-      title: "Podcast de Tecnologia",
-      description: "Escutar podcast sobre novas tecnologias",
-      dayOfWeek: 3,
-      time: "21:00",
-      priority: "baixa",
-      category: "lazer",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-13",
-      title: "Yoga e Meditação",
-      description: "45 minutos de yoga e 15 de meditação",
-      dayOfWeek: 4,
-      time: "07:00",
-      priority: "media",
-      category: "saude",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-14",
-      title: "Estudar Algoritmos",
-      description: "Resolver problemas de algoritmos no LeetCode",
-      dayOfWeek: 4,
-      time: "19:00",
-      priority: "alta",
-      category: "estudo",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-15",
-      title: "Compras da Semana",
-      description: "Ir ao supermercado para compras semanais",
-      dayOfWeek: 4,
-      time: "18:00",
-      priority: "media",
-      category: "casa",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-16",
-      title: "Academia - Pernas",
-      description: "Treino completo de pernas",
-      dayOfWeek: 5,
-      time: "06:00",
-      priority: "alta",
-      category: "exercicio",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-17",
-      title: "Happy Hour",
-      description: "Encontro com amigos após o trabalho",
-      dayOfWeek: 5,
-      time: "18:30",
-      priority: "media",
-      category: "lazer",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-18",
-      title: "Review Semanal",
-      description: "Revisar progresso da semana e ajustar planos",
-      dayOfWeek: 5,
-      time: "21:00",
-      priority: "media",
-      category: "trabalho",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-19",
-      title: "Exercício ao Ar Livre",
-      description: "Corrida ou ciclismo no parque",
-      dayOfWeek: 6,
-      time: "07:00",
-      priority: "media",
-      category: "exercicio",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-20",
-      title: "Hobby - Violão",
-      description: "Praticar violão por 1 hora",
-      dayOfWeek: 6,
-      time: "14:00",
-      priority: "baixa",
-      category: "lazer",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-21",
-      title: "Cinema ou Séries",
-      description: "Assistir filme ou episódios de série",
-      dayOfWeek: 6,
-      time: "20:00",
-      priority: "baixa",
-      category: "lazer",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      _id: "mock-22",
-      title: "Manutenção do Carro",
-      description: "Lavar carro e verificar pneus/óleo",
-      dayOfWeek: 6,
-      time: "10:00",
-      priority: "media",
-      category: "outros",
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    },
-  ];
-
-  // Add mock routines on component mount
   useEffect(() => {
-    const hasMockRoutines = tasks.some((task) => task._id?.startsWith("mock-"));
-    if (!hasMockRoutines) {
-      setTasks(mockRoutines);
-    }
+    const fetchRoutines = async () => {
+      setIsLoading(true); // Set loading to true before fetching
+      try {
+        const routines = (await getAllRoutines()) ?? [];
+        setTasks(routines as unknown as Task[]);
+      } catch (error) {
+        toast.error("Erro ao carregar rotinas. Tente novamente.");
+      } finally {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500);
+      }
+    };
+
+    fetchRoutines();
   }, []);
 
   const monthNames = [
@@ -385,9 +184,7 @@ const CalendarView = () => {
       day
     );
     const dayOfWeek = date.getDay();
-    return tasks.filter(
-      (task) => task.isRoutine && task.dayOfWeek === dayOfWeek
-    );
+    return tasks.filter((task) => task.weekDay === dayOfWeek);
   };
 
   const navigateMonth = (direction: number) => {
@@ -439,35 +236,34 @@ const CalendarView = () => {
     }));
   };
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newRoutine.title) {
-      alert("Por favor, preencha pelo menos o título da rotina.");
-      return;
+
+    try {
+      await createRoutine({
+        title: newRoutine.title,
+        description: newRoutine.description,
+        weekDay: Number(newRoutine.dayOfWeek),
+        time: newRoutine.time,
+        category: newRoutine.category,
+      });
+
+      toast.success("Rotina criada com sucesso!");
+      handleCloseModal();
+      const routines = (await getAllRoutines()) ?? [];
+      setTasks(routines as unknown as Task[]);
+    } catch (error) {
+      toast.error("Erro ao criar rotina. Tente novamente.");
     }
-    const newRoutineTask = {
-      _id: Date.now().toString(),
-      title: newRoutine.title,
-      description: newRoutine.description,
-      dayOfWeek: newRoutine.dayOfWeek,
-      time: newRoutine.time,
-      priority: newRoutine.priority,
-      category: newRoutine.category,
-      completed: false,
-      isRoutine: true,
-      createdAt: new Date().toISOString(),
-    };
-    setTasks((prevTasks) => [...prevTasks, newRoutineTask]);
-    handleCloseModal();
   };
 
   const handleRoutine = (routineId: string) => {
-    setSelectedRoutineId(selectedRoutineId === routineId ? null : routineId); // Toggle selection
+    setSelectedRoutineId(selectedRoutineId === routineId ? null : routineId);
   };
 
   const handleDeleteRoutine = (routineId: string) => {
     setTasks((prevTasks) => prevTasks.filter((task) => task._id !== routineId));
-    setSelectedRoutineId(null); // Reset selection after deletion
+    setSelectedRoutineId(null);
   };
 
   const getCategoryColor = (category: string) => {
@@ -493,9 +289,7 @@ const CalendarView = () => {
   const routinesByDay = dayNamesLong.map((dayName, index) => ({
     day: dayName,
     dayIndex: index,
-    routines: tasks.filter(
-      (task) => task.isRoutine && task.dayOfWeek === index
-    ),
+    routines: tasks.filter((task) => task.weekDay === index),
   }));
 
   return (
@@ -522,7 +316,13 @@ const CalendarView = () => {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-semibold">
-              {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              {isLoading ? (
+                <div className="h-8 w-40 bg-gray-200 dark:bg-slate-700 rounded animate-pulse"></div>
+              ) : (
+                `${
+                  monthNames[currentDate.getMonth()]
+                } ${currentDate.getFullYear()}`
+              )}
             </h2>
             <div className="flex space-x-2">
               <button
@@ -530,6 +330,7 @@ const CalendarView = () => {
                 className={`p-2 rounded-lg ${
                   isDarkMode ? "hover:bg-slate-700" : "hover:bg-slate-100"
                 } transition-colors`}
+                disabled={isLoading}
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -538,95 +339,103 @@ const CalendarView = () => {
                 className={`p-2 rounded-lg ${
                   isDarkMode ? "hover:bg-slate-700" : "hover:bg-slate-100"
                 } transition-colors`}
+                disabled={isLoading}
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {dayNames.map((day) => (
-              <div
-                key={day}
-                className={`p-3 text-center text-sm font-medium ${
-                  isDarkMode ? "text-slate-400" : "text-slate-600"
-                }`}
-              >
-                {day}
+          {isLoading ? (
+            <CalendarSkeleton />
+          ) : (
+            <>
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {dayNames.map((day) => (
+                  <div
+                    key={day}
+                    className={`p-3 text-center text-sm font-medium ${
+                      isDarkMode ? "text-slate-400" : "text-slate-600"
+                    }`}
+                  >
+                    {day}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="grid grid-cols-7 gap-1">
+                {days.map((day, index) => {
+                  const dayRoutines = getRoutinesForDate(day);
+                  const hasRoutine = dayRoutines.length > 0;
+                  const todayClass = isToday(day);
 
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((day, index) => {
-              const dayRoutines = getRoutinesForDate(day);
-              const hasRoutine = dayRoutines.length > 0;
-              const todayClass = isToday(day);
-
-              return (
-                <div
-                  key={index}
-                  onClick={() => day && handleOpenDayRoutinesModal(day)}
-                  className={`min-h-[100px] p-2 border rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer ${
-                    day
-                      ? `${
-                          isDarkMode
-                            ? "border-slate-600 hover:border-slate-500 hover:bg-slate-700/50"
-                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                        } ${
-                          todayClass
-                            ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400"
-                            : ""
-                        }`
-                      : "border-transparent"
-                  }`}
-                >
-                  {day && (
-                    <>
-                      <div
-                        className={`text-sm font-medium mb-1 ${
-                          todayClass ? "text-purple-400" : ""
-                        }`}
-                      >
-                        {day}
-                      </div>
-                      {hasRoutine && (
-                        <div className="space-y-1">
-                          {dayRoutines.slice(0, 3).map((routine) => (
-                            <div
-                              key={routine._id}
-                              className={`text-xs p-1 rounded truncate border ${getCategoryColorClasses(
-                                routine.category
-                              )}`}
-                            >
-                              <div className="flex items-center space-x-1">
-                                <Repeat className="w-2 h-2" />
-                                <span>{routine.title}</span>
-                              </div>
-                              {routine.time && (
-                                <div className="text-xs opacity-75">
-                                  {routine.time}
+                  return (
+                    <div
+                      key={index}
+                      onClick={() => day && handleOpenDayRoutinesModal(day)}
+                      className={`min-h-[100px] p-2 border rounded-lg transition-all duration-200 hover:scale-105 cursor-pointer ${
+                        day
+                          ? `${
+                              isDarkMode
+                                ? "border-slate-600 hover:border-slate-500 hover:bg-slate-700/50"
+                                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                            } ${
+                              todayClass
+                                ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400"
+                                : ""
+                            }`
+                          : "border-transparent"
+                      }`}
+                    >
+                      {day && (
+                        <>
+                          <div
+                            className={`text-sm font-medium mb-1 ${
+                              todayClass ? "text-purple-400" : ""
+                            }`}
+                          >
+                            {day}
+                          </div>
+                          {hasRoutine && (
+                            <div className="space-y-1">
+                              {dayRoutines.slice(0, 3).map((routine) => (
+                                <div
+                                  key={routine._id}
+                                  className={`text-xs p-1 rounded truncate border ${getCategoryColorClasses(
+                                    routine.category
+                                  )}`}
+                                >
+                                  <div className="flex items-center space-x-1">
+                                    <Repeat className="w-2 h-2" />
+                                    <span>{routine.title}</span>
+                                  </div>
+                                  {routine.time && (
+                                    <div className="text-xs opacity-75">
+                                      {routine.time}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                              {dayRoutines.length > 3 && (
+                                <div
+                                  className={`text-xs ${
+                                    isDarkMode
+                                      ? "text-slate-400"
+                                      : "text-slate-600"
+                                  }`}
+                                >
+                                  +{dayRoutines.length - 3} mais
                                 </div>
                               )}
                             </div>
-                          ))}
-                          {dayRoutines.length > 3 && (
-                            <div
-                              className={`text-xs ${
-                                isDarkMode ? "text-slate-400" : "text-slate-600"
-                              }`}
-                            >
-                              +{dayRoutines.length - 3} mais
-                            </div>
                           )}
-                        </div>
+                        </>
                       )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Weekly Routines */}
@@ -641,97 +450,90 @@ const CalendarView = () => {
             <Repeat className="w-5 h-5" />
             <span>Rotinas da Semana</span>
           </h3>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {routinesByDay.map((dayData) => (
-              <div key={dayData.dayIndex}>
-                <h4
-                  className={`font-medium text-sm mb-2 ${
-                    isDarkMode ? "text-slate-300" : "text-slate-700"
-                  }`}
-                >
-                  {dayData.day}
-                </h4>
-                {dayData.routines.length > 0 ? (
-                  <div className="space-y-2 ml-3">
-                    {dayData.routines.map((routine) => (
-                      <div
-                        key={routine._id}
-                        onMouseEnter={() => handleRoutine(routine._id)} // Added click handler
-                        onMouseLeave={() => handleRoutine(routine._id)}
-                        className={`p-2 rounded-lg border ${getCategoryColorClasses(
-                          routine.category
-                        )} ${
-                          isDarkMode ? "bg-slate-700/30" : "bg-white/50"
-                        } hover:scale-[1.02] transition-transform cursor-pointer relative`} // Added cursor-pointer and relative
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <h5 className="font-medium text-xs">
-                            {routine.title}
-                          </h5>
-                          <div className="flex items-center space-x-1">
-                            {routine.time && (
-                              <span className="text-xs opacity-75">
-                                {routine.time}
-                              </span>
-                            )}
-                            <span
-                              className={`px-1 py-0.5 text-xs rounded ${
-                                routine.priority === "alta"
-                                  ? "bg-red-200 text-red-700"
-                                  : routine.priority === "media"
-                                  ? "bg-yellow-200 text-yellow-700"
-                                  : "bg-green-200 text-green-700"
-                              }`}
-                            >
-                              {routine.priority}
+          {isLoading ? (
+            <WeeklyRoutinesSkeleton />
+          ) : (
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {routinesByDay.map((dayData) => (
+                <div key={dayData.dayIndex}>
+                  <h4
+                    className={`font-medium text-sm mb-2 ${
+                      isDarkMode ? "text-slate-300" : "text-slate-700"
+                    }`}
+                  >
+                    {dayData.day}
+                  </h4>
+                  {dayData.routines.length > 0 ? (
+                    <div className="space-y-2 ml-3">
+                      {dayData.routines.map((routine) => (
+                        <div
+                          key={routine._id}
+                          onMouseEnter={() => handleRoutine(routine._id)}
+                          onMouseLeave={() => handleRoutine(routine._id)}
+                          className={`p-2 rounded-lg border ${getCategoryColorClasses(
+                            routine.category
+                          )} ${
+                            isDarkMode ? "bg-slate-700/30" : "bg-white/50"
+                          } hover:scale-[1.02] transition-transform cursor-pointer relative`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <h5 className="font-medium text-xs">
+                              {routine.title}
+                            </h5>
+                            <div className="flex items-center space-x-1">
+                              {routine.time && (
+                                <span className="text-xs opacity-75">
+                                  {routine.time}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {routine.description && (
+                            <p className="text-xs opacity-75 truncate">
+                              {routine.description}
+                            </p>
+                          )}
+                          <div className="flex items-center mt-1">
+                            <span className="text-xs opacity-60">
+                              {
+                                routineCategories.find(
+                                  (cat) => cat.value === routine.category
+                                )?.label
+                              }
                             </span>
                           </div>
+                          {selectedRoutineId === routine._id && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteRoutine(routine._id);
+                              }}
+                              className={`absolute top-2 right-2 p-1 rounded-full ${
+                                isDarkMode
+                                  ? "bg-red-600/80 hover:bg-red-700"
+                                  : "bg-red-500 hover:bg-red-600"
+                              } text-white transition-colors`}
+                              title="Deletar rotina"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
-                        {routine.description && (
-                          <p className="text-xs opacity-75 truncate">
-                            {routine.description}
-                          </p>
-                        )}
-                        <div className="flex items-center mt-1">
-                          <span className="text-xs opacity-60">
-                            {
-                              routineCategories.find(
-                                (cat) => cat.value === routine.category
-                              )?.label
-                            }
-                          </span>
-                        </div>
-                        {selectedRoutineId === routine._id && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent triggering routine click
-                              handleDeleteRoutine(routine._id);
-                            }}
-                            className={`absolute top-2 right-2 p-1 rounded-full ${
-                              isDarkMode
-                                ? "bg-red-600/80 hover:bg-red-700"
-                                : "bg-red-500 hover:bg-red-600"
-                            } text-white transition-colors`}
-                            title="Deletar rotina"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p
-                    className={`text-xs ${
-                      isDarkMode ? "text-slate-500" : "text-slate-400"
-                    } ml-3`}
-                  >
-                    Nenhuma rotina
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p
+                      className={`text-xs ${
+                        isDarkMode ? "text-slate-500" : "text-slate-400"
+                      } ml-3`}
+                    >
+                      Nenhuma rotina
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -865,28 +667,6 @@ const CalendarView = () => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-2 flex items-center space-x-2">
-                  <Flag className="w-4 h-4" />
-                  <span>Prioridade</span>
-                </label>
-                <select
-                  value={newRoutine.priority}
-                  onChange={(e) =>
-                    handleInputChange("priority", e.target.value)
-                  }
-                  className={`w-full px-4 py-3 rounded-lg border ${
-                    isDarkMode
-                      ? "bg-slate-700 border-slate-600 text-white"
-                      : "bg-white border-slate-300 text-slate-900"
-                  } focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
-                >
-                  <option value="baixa">Baixa</option>
-                  <option value="media">Média</option>
-                  <option value="alta">Alta</option>
-                </select>
-              </div>
-
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
@@ -965,17 +745,6 @@ const CalendarView = () => {
                             {routine.time}
                           </span>
                         )}
-                        <span
-                          className={`px-1 py-0.5 text-xs rounded ${
-                            routine.priority === "alta"
-                              ? "bg-red-200 text-red-700"
-                              : routine.priority === "media"
-                              ? "bg-yellow-200 text-yellow-700"
-                              : "bg-green-200 text-green-700"
-                          }`}
-                        >
-                          {routine.priority}
-                        </span>
                       </div>
                     </div>
                     {routine.description && (

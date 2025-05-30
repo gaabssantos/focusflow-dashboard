@@ -1,3 +1,4 @@
+import { Routine } from "@/@types/Routine";
 import { Task, TaskStatus } from "@/@types/Task";
 import { apiFetch } from "@/utils/api";
 import { toast } from "react-toastify";
@@ -299,6 +300,40 @@ export const getRecentTransactions = async (
     toast.error(
       "Erro ao buscar transações recentes. Tente novamente. " + error
     );
+    return;
+  }
+};
+
+export interface CreateRoutinePayload {
+  title: string;
+  description?: string;
+  weekDay: number;
+  time?: string;
+  category?: string;
+}
+
+export const createRoutine = async (
+  data: CreateRoutinePayload
+): Promise<void> => {
+  try {
+    await apiFetch(`${API_BASE_URL}/api/routine`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    toast.error("Erro ao criar rotina. Tente novamente. " + error);
+  }
+};
+
+export const getAllRoutines = async (): Promise<Routine[] | undefined> => {
+  try {
+    const response = (await apiFetch(`${API_BASE_URL}/api/routine`, {
+      method: "GET",
+    })) as Routine[];
+
+    return response;
+  } catch (error) {
+    toast.error("Erro ao buscar rotinas. Tente novamente. " + error);
     return;
   }
 };
