@@ -42,14 +42,23 @@ export class PomodoroRepository implements IPomodoroRepository {
     };
   }
 
-  async getTodayCount(userId: string): Promise<IPomodoroDTO> {
+  async getTodayCount(userId: string, onlyCount = 0): Promise<IPomodoroDTO> {
     const today = moment().format("YYYY-MM-DD");
+    let count = 0;
+    let currentStreak = 0;
 
-    const record = await PomodoroModel.findOne({ userId, date: today });
+    if (onlyCount == 1) {
+      const record = await PomodoroModel.findOne({ userId, date: today });
+      count = record?.count || 0;
+      currentStreak = record?.currentStreak || 0;
+    } else {
+      const record = await PomodoroModel.findOne({ userId });
+      currentStreak = record?.currentStreak || 0;
+    }
 
     return {
-      count: record?.count || 0,
-      currentStreak: record?.currentStreak || 0,
+      count,
+      currentStreak,
     };
   }
 
@@ -58,7 +67,7 @@ export class PomodoroRepository implements IPomodoroRepository {
     const yesterday = moment().subtract(1, "day").format("YYYY-MM-DD");
 
     // Tenta encontrar um registro do usuário para hoje
-    let record = await PomodoroModel.findOne({ userId, date: today });
+    let record = await PomodoroModel.findOne({ userId });
 
     if (!record) {
       // Tenta encontrar o último registro anterior (para verificar streak)
@@ -79,8 +88,18 @@ export class PomodoroRepository implements IPomodoroRepository {
         currentStreak: newStreak,
         lastUpdated: new Date(),
       });
+    } else {
+      const lastUpdatedDate = moment(record.lastUpdated).format("YYYY-MM-DD");
+
+      if (lastUpdatedDate != today) {
+        record.currentStreak += 1;
+        record.lastUpdated = new Date();
+        await record.save();
+      }
+      return {
+        currentStreak: record.currentStreak,
+      };
     }
-    // Se já existe registro hoje, não faz nada (streak já foi definida)
 
     return {
       currentStreak: record.currentStreak,

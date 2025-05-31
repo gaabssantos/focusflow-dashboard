@@ -8,8 +8,8 @@ export class PomodoroService {
     return await this.repository.incrementTodayCount(userId);
   }
 
-  async getTodaySessionCount(userId: string): Promise<IPomodoroDTO> {
-    return await this.repository.getTodayCount(userId);
+  async getTodaySessionCount(userId: string, onlyCount: number): Promise<IPomodoroDTO> {
+    return await this.repository.getTodayCount(userId, onlyCount);
   }
 
   async streak(userId: string): Promise<{ currentStreak: number }> {

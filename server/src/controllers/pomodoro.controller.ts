@@ -22,7 +22,8 @@ export class PomodoroController {
   async getPomodoroToday(req: IRequest, res: Response) {
     try {
       const userId = req.user.id;
-      const result = await service.getTodaySessionCount(userId);
+      const onlyCount = req.params.onlyCount as unknown as number;
+      const result = await service.getTodaySessionCount(userId, onlyCount);
       return res.json(result); // { count, currentStreak }
     } catch (err) {
       return res.status(500).json({ error: "Erro ao buscar sessões de hoje." });

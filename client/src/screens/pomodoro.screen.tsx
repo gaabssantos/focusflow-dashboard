@@ -222,7 +222,7 @@ const PomodoroView = () => {
     const loadData = async () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      setPomodoro((await getPomodoroStats()).count);
+      setPomodoro((await getPomodoroStats(1)).count);
       setTasks((await getTasks()) as Task[]);
       setIsLoading(false);
     };

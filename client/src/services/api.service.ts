@@ -203,12 +203,12 @@ export const incrementPomodoro = async (): Promise<{
   }
 };
 
-export const getPomodoroStats = async (): Promise<{
+export const getPomodoroStats = async (onlyCount: number): Promise<{
   count: number;
   currentStreak: number;
 }> => {
   try {
-    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/stats`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/stats/${onlyCount}`, {
       method: "GET",
     });
 
@@ -241,7 +241,7 @@ export interface PomodoroStats {
 
 export const refreshStats = async (): Promise<PomodoroStats> => {
   try {
-    const stats = await getPomodoroStats(); // já retorna count e streak
+    const stats = await getPomodoroStats(0); // já retorna count e streak
     return {
       count: stats.count || 0,
       currentStreak: stats.currentStreak || 0,

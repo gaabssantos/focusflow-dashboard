@@ -9,7 +9,7 @@ const pomodoroRoutes = Router();
 const pomodoroController = new PomodoroController();
 
 pomodoroRoutes.get(
-  "/pomodoro/stats",
+  "/pomodoro/stats/:onlyCount",
   ensureAuth,
   async (req: IRequest, res: Response) => {
     await pomodoroController.getPomodoroToday(req, res);
