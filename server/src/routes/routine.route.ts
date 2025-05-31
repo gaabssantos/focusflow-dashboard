@@ -9,6 +9,10 @@ routineRoutes.post("/routine", ensureAuth, (req: Request, res: Response) => {
   routineController.handle(req, res);
 });
 
+routineRoutes.delete("/routine/:id", ensureAuth, (req: Request, res: Response) => {
+  routineController.delete(req, res);
+});
+
 routineRoutes.get("/routine", ensureAuth, (req: Request, res: Response) => {
   routineController.findByUser(req, res);
 });

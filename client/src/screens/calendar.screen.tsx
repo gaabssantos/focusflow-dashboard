@@ -13,7 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { createRoutine, getAllRoutines } from "@/services/api.service";
+import { createRoutine, deleteRoutine, getAllRoutines } from "@/services/api.service";
 
 // Skeleton component for calendar grid
 const CalendarSkeleton = () => {
@@ -239,6 +239,8 @@ const CalendarView = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log(newRoutine);
+
     try {
       await createRoutine({
         title: newRoutine.title,
@@ -261,7 +263,9 @@ const CalendarView = () => {
     setSelectedRoutineId(selectedRoutineId === routineId ? null : routineId);
   };
 
-  const handleDeleteRoutine = (routineId: string) => {
+  const handleDeleteRoutine = async (routineId: string) => {
+    await deleteRoutine(routineId);
+
     setTasks((prevTasks) => prevTasks.filter((task) => task._id !== routineId));
     setSelectedRoutineId(null);
   };

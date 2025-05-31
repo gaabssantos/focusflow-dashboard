@@ -35,6 +35,24 @@ export class RoutineController {
     }
   }
 
+  async delete(req: IRequest, res: Response): Promise<Response> {
+    try {
+      const id = req.params.id;
+
+      const routineRepository = new RoutineRepository();
+      const routineService = new CreateRoutineService(routineRepository);
+
+      const routine = await routineService.delete(id);
+
+      return res.status(201).json(routine);
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        return res.status(400).json({ errors: e.errors });
+      }
+      return res.status(500).json({ error: "Erro interno" });
+    }
+  }
+
   async findByUser(req: IRequest, res: Response): Promise<Response> {
     const userId = req.user?.id;
 

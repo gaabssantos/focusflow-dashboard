@@ -203,14 +203,19 @@ export const incrementPomodoro = async (): Promise<{
   }
 };
 
-export const getPomodoroStats = async (onlyCount: number): Promise<{
+export const getPomodoroStats = async (
+  onlyCount: number
+): Promise<{
   count: number;
   currentStreak: number;
 }> => {
   try {
-    const response = await apiFetch(`${API_BASE_URL}/api/pomodoro/stats/${onlyCount}`, {
-      method: "GET",
-    });
+    const response = await apiFetch(
+      `${API_BASE_URL}/api/pomodoro/stats/${onlyCount}`,
+      {
+        method: "GET",
+      }
+    );
 
     if (
       typeof response === "object" &&
@@ -298,7 +303,7 @@ export const deleteTransaction = async (id: string) => {
 };
 
 export const getRecentTransactions = async (
-  period: 'week' | 'month' | 'year'
+  period: "week" | "month" | "year"
 ): Promise<TransactionResponse[] | undefined> => {
   try {
     const response = (await apiFetch(
@@ -335,6 +340,18 @@ export const createRoutine = async (
     });
   } catch (error) {
     toast.error("Erro ao criar rotina. Tente novamente. " + error);
+  }
+};
+
+export const deleteRoutine = async (
+  id: string
+): Promise<void> => {
+  try {
+    await apiFetch(`${API_BASE_URL}/api/routine/${id}`, {
+      method: "DELETE",
+    });
+  } catch (error) {
+    toast.error("Erro ao deletar rotina. Tente novamente. " + error);
   }
 };
 
