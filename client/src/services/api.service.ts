@@ -262,7 +262,7 @@ interface CreateTransactionPayload {
 }
 
 interface TransactionResponse {
-  id: number;
+  _id: string;
   type: "income" | "expense";
   description: string;
   amount: number;
@@ -280,6 +280,19 @@ export const addTransaction = async (data: CreateTransactionPayload) => {
     return response;
   } catch (error) {
     toast.error("Erro ao adicionar transação. Tente novamente. " + error);
+    return;
+  }
+};
+
+export const deleteTransaction = async (id: string) => {
+  try {
+    const response = (await apiFetch(`${API_BASE_URL}/api/transaction/${id}`, {
+      method: "DELETE",
+    })) as TransactionResponse;
+
+    return response;
+  } catch (error) {
+    toast.error("Erro ao deletar transação. Tente novamente. " + error);
     return;
   }
 };

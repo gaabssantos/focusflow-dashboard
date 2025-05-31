@@ -13,6 +13,10 @@ export class TransactionService {
     return await this.repository.create(userId, data);
   }
 
+  async deleteTransaction(id: string): Promise<ITransaction> {
+    return await this.repository.delete(id);
+  }
+
   async getRecentTransactions(
     userId: string,
     period: "week" | "month" | "year"

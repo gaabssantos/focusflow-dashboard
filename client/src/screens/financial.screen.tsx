@@ -21,16 +21,19 @@ import {
   GraduationCap,
   MoreHorizontal,
   Filter,
+  Trash2,
 } from "lucide-react";
 import { useTheme } from "@/context/theme.context";
-import { addTransaction, getRecentTransactions } from "@/services/api.service";
+import { addTransaction, deleteTransaction, getRecentTransactions } from "@/services/api.service";
 import { toast } from "react-toastify";
+import { useFinancial } from "@/context/financical.context";
+import formatCurrency from "@/utils/format-currency";
 
 const FinancialView = () => {
   const { isDarkMode } = useTheme();
   const [transactions, setTransactions] = useState([
     {
-      id: 1,
+      _id: "",
       type: "income",
       description: "",
       amount: 0,
@@ -41,23 +44,21 @@ const FinancialView = () => {
   const [loading, setLoading] = useState(true); // Added loading state
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [hideValues] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [newTransaction, setNewTransaction] = useState({
+    id: 1,
     type: "expense",
     description: "",
     amount: "",
     category: "Alimentação",
     date: new Date().toISOString().split("T")[0],
   });
+  const { earns, setEarns } = useFinancial();
 
-  const totalIncome = transactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
   const totalExpenses = transactions
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
-  const balance = totalIncome - totalExpenses;
+  const balance = earns - totalExpenses;
 
   const categoryIcons: { [key: string]: React.ComponentType<any> } = {
     Salário: DollarSign,
@@ -79,14 +80,6 @@ const FinancialView = () => {
     { key: "month", label: "Mês" },
     { key: "year", label: "Ano" },
   ];
-
-  const formatCurrency = (value: number) => {
-    if (hideValues) return "••••••";
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
 
   const getExpensesByCategory = () => {
     const expensesByCategory: { [key: string]: number } = {};
@@ -120,6 +113,7 @@ const FinancialView = () => {
           setTransactions([savedTransaction, ...transactions]);
 
           setNewTransaction({
+            id: 1,
             type: "expense",
             description: "",
             amount: "",
@@ -142,28 +136,61 @@ const FinancialView = () => {
   };
 
   const balanceProgress =
-    balance > 0 ? Math.min((balance / (totalIncome || 1)) * 100, 100) : 0;
+    balance > 0 ? Math.min((balance / (earns || 1)) * 100, 100) : 0;
+
+const handleDeleteTransaction = async (transactionId: string) => {
+    try {
+      const transactionExists = transactions.find((t) => t._id === transactionId);
+      if (!transactionExists) {
+        throw new Error("Transação não encontrada");
+      }
+
+      // Chama a API para excluir a transação
+      await deleteTransaction(transactionId);
+
+      // Remove apenas a transação com o ID correspondente
+      setTransactions((prevTransactions) =>
+        prevTransactions.filter((t) => t._id !== transactionId)
+      );
+
+      // Recalcula o total de receitas (earns) após a exclusão, se necessário
+      const income = transactions
+        .filter((t) => t.type === "income" && t._id !== transactionId)
+        .reduce((sum, t) => sum + t.amount, 0);
+      setEarns(income);
+
+      toast.success("Transação excluída com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir transação:", error);
+      toast.error("Erro ao excluir transação. Tente novamente.");
+    }
+  };
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      setLoading(true); // Set loading to true before fetch
+      setLoading(true);
       try {
         const result = await getRecentTransactions(
           selectedPeriod as "week" | "month" | "year"
         );
+
+        // Usa result diretamente
+        const income = (result ?? []).filter((t) => t.type === "income");
+        setEarns(income.reduce((sum, t) => sum + t.amount, 0));
+
         setTransactions(result ?? []);
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
         toast.error("Erro ao carregar transações.");
       } finally {
         setTimeout(() => {
-          setLoading(false); // Set loading to false after fetch
+          setLoading(false);
         }, 500);
       }
     };
 
     fetchTransactions();
-  }, [selectedPeriod]);
+  }, [selectedPeriod, setEarns]);
 
   return (
     <div>
@@ -360,7 +387,7 @@ const FinancialView = () => {
                         Receitas
                       </p>
                       <p className="text-3xl font-bold text-green-500">
-                        {formatCurrency(totalIncome)}
+                        {formatCurrency(earns)}
                       </p>
                     </div>
                     <div className="p-3 rounded-xl bg-green-100">
@@ -605,8 +632,8 @@ const FinancialView = () => {
                   {transactions.slice(0, 4).map((transaction) => {
                     return (
                       <div
-                        key={transaction.id}
-                        className={`p-3 rounded-xl ${
+                        key={transaction._id}
+                        className={`p-3 rounded-xl relative group ${
                           isDarkMode
                             ? "bg-slate-700/50 hover:bg-slate-600/50"
                             : "bg-slate-100 hover:bg-slate-200"
@@ -653,6 +680,16 @@ const FinancialView = () => {
                             {formatCurrency(transaction.amount)}
                           </span>
                         </div>
+                        {/* Ícone de lixeira visível no hover */}
+                        <button
+                          onClick={() =>
+                            handleDeleteTransaction(transaction._id)
+                          }
+                          className="absolute top-1/2 right-2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-2 rounded-full bg-red-500 hover:bg-red-600"
+                          title="Excluir transação"
+                        >
+                          <Trash2 className="w-4 h-4 text-white" />
+                        </button>
                       </div>
                     );
                   })}

@@ -9,6 +9,10 @@ transactionRoutes.post("/transaction", ensureAuth, (req, res) => {
   controller.create(req, res);
 });
 
+transactionRoutes.delete("/transaction/:id", ensureAuth, (req, res) => {
+  controller.delete(req, res);
+});
+
 transactionRoutes.get("/transaction/recents/:period", ensureAuth, async (req, res) => {
   await controller.getRecentTransactions(req, res);
 });

@@ -1,4 +1,4 @@
-import { usePendingTasks } from "@/context/pending-tasks";
+import { usePendingTasks } from "@/context/pending-tasks.context";
 import { useProfile } from "@/context/profile.context";
 import { useTheme } from "@/context/theme.context";
 import { PlayCircle } from "lucide-react";

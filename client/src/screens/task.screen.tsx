@@ -1,7 +1,7 @@
 import { FormData } from "@/@types/FormData";
 import { Task, TaskStatus } from "@/@types/Task";
 import TaskCard from "@/components/ui/task";
-import { usePendingTasks } from "@/context/pending-tasks";
+import { usePendingTasks } from "@/context/pending-tasks.context";
 import { useTasks } from "@/context/tasks.context";
 import { useTheme } from "@/context/theme.context";
 import {

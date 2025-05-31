@@ -14,7 +14,7 @@ import AIView from "./screens/ia.screen.js";
 import { useTasks } from "./context/tasks.context.js";
 import { useEffect } from "react";
 import { Profile, useProfile } from "./context/profile.context.js";
-import { usePendingTasks } from "./context/pending-tasks.js";
+import { usePendingTasks } from "./context/pending-tasks.context.js";
 import {
   getPendingTasks,
   getProfile,

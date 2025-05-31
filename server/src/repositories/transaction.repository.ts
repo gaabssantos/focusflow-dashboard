@@ -15,6 +15,12 @@ export class TransactionRepository implements ITransactionRepository {
     });
   }
 
+  async delete(id: string): Promise<ITransaction> {
+    const transaction = await TransactionModel.findByIdAndDelete(id).lean();
+
+    return transaction as ITransaction;
+  }
+
   async getRecentTransactions(
     userId: string,
     period: "week" | "month" | "year"

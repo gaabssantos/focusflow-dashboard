@@ -22,6 +22,18 @@ export class TransactionController {
     }
   }
 
+    async delete(req: IRequest, res: Response) {
+    try {
+      const id = req.params.id;
+
+      const transaction = await service.deleteTransaction(id);
+      return res.status(201).json(transaction);
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Erro ao criar transação." });
+    }
+  }
+
   async getRecentTransactions(req: IRequest, res: Response) {
     try {
       const userId = req.user.id;

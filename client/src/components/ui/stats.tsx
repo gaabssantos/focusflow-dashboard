@@ -3,6 +3,8 @@ import StatsCard from "./stats-card";
 import { useEffect, useState } from "react";
 import { getDoneTasks, refreshStats } from "@/services/api.service";
 import { usePomodoro } from "@/context/pomodoro.context";
+import { useFinancial } from "@/context/financical.context";
+import formatCurrency from "@/utils/format-currency";
 
 // Componente de Loading Skeleton para os cards
 const StatsCardSkeleton = () => (
@@ -27,23 +29,21 @@ const calculatePercentageIncrease = (
 };
 
 const Stats = () => {
-  const [stats] = useState({
-    tasksCompleted: 12,
-    totalEarnings: 3240,
-    focusTime: 4.2,
-  });
-
   const [tasksDone, setTasksDone] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState(0);
 
   const { pomodoro } = usePomodoro();
+  const { earns } = useFinancial();
 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const tasksIncrease = calculatePercentageIncrease(tasksDone, 15);
   const streakIncrease = calculatePercentageIncrease(streak, 15);
-  const pomodoroIncrease = calculatePercentageIncrease((pomodoro * 25) / 60, 15);
+  const pomodoroIncrease = calculatePercentageIncrease(
+    (pomodoro * 25) / 60,
+    15
+  );
 
   useEffect(() => {
     async function fetchData() {
@@ -91,7 +91,7 @@ const Stats = () => {
       <StatsCard
         icon={DollarSign}
         title="Ganhos"
-        value={`R$ ${stats.totalEarnings}`}
+        value={`${formatCurrency(earns)}`}
         subtitle="Valor total"
         gradient="from-orange-500 to-red-500"
         trend={8}
