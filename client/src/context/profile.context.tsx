@@ -4,6 +4,7 @@ export type Profile = {
   user: {
     name: string | undefined;
     email: string | undefined;
+    password: string | undefined;
   };
 };
 
@@ -19,6 +20,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     user: {
       name: undefined,
       email: undefined,
+      password: undefined
     },
   });
 

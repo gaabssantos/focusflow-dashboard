@@ -2,7 +2,6 @@ import {
   Home,
   Calendar,
   Target,
-  TrendingUp,
   Settings,
   Zap,
   ChevronRight,
@@ -46,12 +45,6 @@ const Navigation = () => {
       icon: Bot,
       label: "IA",
       color: "from-blue-500 to-indigo-500",
-    },
-    {
-      id: "analytics",
-      icon: TrendingUp,
-      label: "Analytics",
-      color: "from-orange-500 to-red-500",
     },
     {
       id: "settings",

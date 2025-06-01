@@ -7,7 +7,6 @@ import Welcome from "./components/ui/welcome.js";
 import Stats from "./components/ui/stats.js";
 import RecentTasks from "./components/ui/recent-tasks.js";
 import TasksView from "./screens/task.screen.js";
-import AnalyticsView from "./screens/analytics.screen.js";
 import SettingsView from "./screens/settings.screen.js";
 import FinancialView from "./screens/financial.screen.js";
 import AIView from "./screens/ia.screen.js";
@@ -70,8 +69,6 @@ export default function App() {
             }}
           />
         );
-      case "analytics":
-        return <AnalyticsView />;
       case "settings":
         return <SettingsView />;
       case "financial":

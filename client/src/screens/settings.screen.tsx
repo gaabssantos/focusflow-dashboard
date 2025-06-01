@@ -26,6 +26,8 @@ type Settings = {
   profile: {
     name: string;
     email: string;
+    currentPassword: string;
+    newPassword: string;
     timezone: string;
     dailyGoal: number;
   };
@@ -60,6 +62,8 @@ const SettingsView = () => {
     profile: {
       name: profile.user.name ?? "",
       email: profile.user.email ?? "",
+      currentPassword: "",
+      newPassword: "",
       timezone: "America/Sao_Paulo",
       dailyGoal: 8,
     },
@@ -298,6 +302,24 @@ const SettingsView = () => {
               type="email"
               onChange={(value) => updateSetting("profile", "email", value)}
               description="Endereço de email para notificações"
+            />
+            <InputField
+              label="Senha Atual"
+              value={settings.profile.currentPassword}
+              type="password"
+              onChange={(value) =>
+                updateSetting("profile", "currentPassword", value)
+              }
+              description="Digite sua senha atual"
+            />
+            <InputField
+              label="Senha Nova"
+              value={settings.profile.newPassword}
+              type="password"
+              onChange={(value) =>
+                updateSetting("profile", "newPassword", value)
+              }
+              description="Digite sua senha nova"
             />
             <SelectField
               label="Fuso Horário"
